@@ -8,6 +8,8 @@
 
 **Două abateri de la brief, cerute explicit:** fără Drizzle, și totul pe planuri gratuite.
 
+**A treia abatere, impusă de realitate:** brieful spune Next.js 15, dar versiunea curentă e **16.3.3** — instalată în M0. Vezi secțiunea 3.6 pentru ce schimbă asta.
+
 ---
 
 ## 1. Fără Drizzle — cum arată accesul la date
@@ -190,13 +192,38 @@ Două formulare trimise simultan pe ultimul loc trec amândouă, dacă verificar
 
 Postgres Changes trece prin RLS cu JWT-ul utilizatorului, deci ar cere exact politicile `SELECT` pe care le eliminăm la punctul 1. În Faza 1: `router.refresh()` la 20 de secunde pe dashboard. Vizual identic, zero complexitate arhitecturală. Realtime e disponibil și pe planul gratuit — deci e o amânare, nu o renunțare.
 
+### 3.6 Next.js 16 schimbă trei lucruri din brief
+
+Brieful a fost scris pentru Next.js 15. Versiunea curentă e 16.3.3, iar pachetul își livrează
+propria documentație în `node_modules/next/dist/docs/` tocmai pentru că diferă de ce știu
+modelele. Trei diferențe ating direct proiectul ăsta:
+
+**`middleware.ts` a devenit `proxy.ts`.** Fișierul și funcția exportată se numesc acum `proxy`.
+Runtime-ul e `nodejs` și nu se mai poate configura — `edge` nu e suportat în `proxy`.
+Afectează M4 și structura de fișiere din §7 al briefului. Vestea bună: `@supabase/ssr` rulează
+fără restricțiile de edge runtime, deci protejarea rutelor de admin e mai simplă, nu mai grea.
+
+**`revalidateTag` cere acum al doilea argument**, un profil de `cacheLife`, iar pentru
+„publici un webinar și vrei să se vadă imediat" există o funcție nouă, **`updateTag`**, cu
+semantică read-your-writes. Asta e exact cazul nostru din M4 — la salvarea cu status
+`published`, pagina publică trebuie să existe *instant*, nu după o revalidare leneșă.
+`revalidatePath` din plan devine `updateTag` într-o Server Action.
+
+**`params` și `searchParams` sunt exclusiv asincrone.** Perioada de compatibilitate din 15 s-a
+încheiat. Afectează `/webinar/[slug]` și toate filtrele din `searchParams`. Tipurile se
+generează cu `next typegen` — de aceea `pnpm typecheck` rulează `next typegen && tsc --noEmit`,
+altfel `PageProps` și `LayoutProps` nu există.
+
+Colateral, deja rezolvat în M0: Turbopack e implicit (fără flag), `next lint` a fost eliminat în
+favoarea CLI-ului ESLint, iar `images.domains` e depreciat în favoarea lui `remotePatterns`.
+
 ---
 
 ## 4. Milestone-uri
 
 Zile de lucru efective, nu calendaristice.
 
-### M0 — Fundație (0,5 zile)
+### M0 — Fundație ✅ *gata, commit `84106db`*
 
 - `pnpm create next-app` — TypeScript, App Router, Tailwind v4, alias `@/`
 - `engines.node = "24.x"` (local ai 26, Vercel rulează 24 — fără pin apar diferențe)
@@ -227,7 +254,7 @@ Partea din care iese sau nu iese primul lead. Se construiește cu markup provizo
 - `POST /api/inscriere`: honeypot → rate limit (tabel Postgres, nu Upstash) → Zod → `rpc('register_for_webinar')` → email → CAPI
 - `POST /api/lista-asteptare`, `POST /api/replay` — aceeași structură
 - Captură UTM și `fbclid`: prima atingere pe `contacts`, ultima pe `registrations`
-- `/webinar/[slug]` cu ISR, `revalidatePath` la publicarea din admin
+- `/webinar/[slug]` cu ISR, `updateTag` la publicarea din admin (vezi 3.6)
 - Hub la `/`, inclusiv starea goală cu formular
 - `/inscriere-confirmata` cu `noindex`
 - Generare `.ics` — `location` la evenimentele fizice, `join_url` la cele online
@@ -251,7 +278,7 @@ Partea din care iese sau nu iese primul lead. Se construiește cu markup provizo
 ### M4 — Admin, Faza 1 (3 zile)
 
 - Supabase Auth magic link, **signup public dezactivat**
-- `middleware.ts` — protejează `(admin)`, verifică emailul în `admin_users`, face refresh de sesiune
+- `proxy.ts` (fostul `middleware.ts`, vezi 3.6) — protejează `(admin)`, verifică emailul în `admin_users`, face refresh de sesiune
 - CRUD webinarii cu formularul din §7.2: format condiționat, comutatoarele `listed` / `is_featured` / `replay_public`, duplicare
 - `is_featured` exclusiv — dezactivarea celui anterior în aceeași tranzacție
 - Upload copertă **cu redimensionare la client înainte de upload** (vezi 2.4)
@@ -361,7 +388,7 @@ lib/
   supabase/
     server.ts               # anon + sesiune — DOAR auth
     admin.ts                # service_role — doar server
-    middleware.ts
+    proxy.ts
   validations/
   email/
   rate-limit.ts
