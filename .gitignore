@@ -44,3 +44,6 @@ next-env.d.ts
 /supabase/.temp
 /supabase/.branches
 !.env.example
+
+# backup temporar la comutarea env-ului pe stack-ul local
+.env.local.cloud.bak

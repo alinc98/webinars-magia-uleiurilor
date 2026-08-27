@@ -128,3 +128,13 @@
     @apply font-sans;
   }
 }
+
+/* Provizoriu: stilul real vine din design system-ul importat în M5. */
+@layer components {
+  .camp {
+    @apply border-input bg-background w-full rounded-lg border px-3 py-2.5 text-base;
+  }
+  .camp:focus-visible {
+    @apply ring-ring outline-none ring-2 ring-offset-2;
+  }
+}
