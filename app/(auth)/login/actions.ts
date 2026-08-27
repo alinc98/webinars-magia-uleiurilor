@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { z } from 'zod'
 
+import { normalizeazaUrlDeBaza } from '@/lib/env'
 import { estePeListaAlba } from '@/lib/supabase/auth'
 import { createServerSupabase } from '@/lib/supabase/server'
 
@@ -37,9 +38,18 @@ export async function trimiteMagicLink(
   }
 
   const antete = await headers()
+  // Dacă variabila lipsește sau e greșită, cădem pe gazda cererii — mai bine
+  // un link corect decât o autentificare care pică.
   const origine =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `${antete.get('x-forwarded-proto') ?? 'http'}://${antete.get('host')}`
+    normalizeazaUrlDeBaza(process.env.NEXT_PUBLIC_SITE_URL) ??
+    normalizeazaUrlDeBaza(
+      `${antete.get('x-forwarded-proto') ?? 'https'}://${antete.get('host')}`
+    )
+
+  if (!origine) {
+    console.error('Nu am putut determina originea pentru linkul de autentificare.')
+    return { ok: false, mesaj: 'Nu am putut trimite linkul. Încearcă din nou.' }
+  }
 
   const destinatie = new URL('/auth/confirmare', origine)
   if (redirectTo?.startsWith('/')) destinatie.searchParams.set('next', redirectTo)
