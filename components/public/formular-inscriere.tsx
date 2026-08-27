@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { BifaConsimtamant, Camp } from '@/components/brand/campuri'
+import { Buton } from '@/components/brand/buton'
 import { trimiteLeadPixel } from '@/components/public/meta-pixel'
 import { citesteTracking } from '@/lib/utm'
 import { inscriereSchema } from '@/lib/validations/inscriere'
@@ -115,111 +117,84 @@ export function FormularInscriere({
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
-      <Camp id="name" eticheta="Nume" eroare={erori.name}>
-        <input
-          id="name"
-          name="name"
-          required
-          autoComplete="name"
-          className="camp"
-          aria-invalid={Boolean(erori.name)}
-        />
-      </Camp>
+      <Camp
+        id="name"
+        name="name"
+        eticheta="Nume"
+        required
+        autoComplete="name"
+        eroare={erori.name}
+        hint="Așa te salut în emailuri."
+      />
 
-      <Camp id="email" eticheta="Email" eroare={erori.email}>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          inputMode="email"
-          className="camp"
-          aria-invalid={Boolean(erori.email)}
-        />
-      </Camp>
+      <Camp
+        id="email"
+        name="email"
+        type="email"
+        eticheta="Email"
+        required
+        autoComplete="email"
+        inputMode="email"
+        eroare={erori.email}
+        hint="Aici primești linkul de acces."
+      />
 
-      <Camp id="phone" eticheta="Telefon (opțional)" eroare={erori.phone}>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          inputMode="tel"
-          className="camp"
-          aria-invalid={Boolean(erori.phone)}
-        />
-      </Camp>
+      <Camp
+        id="phone"
+        name="phone"
+        type="tel"
+        eticheta="Telefon"
+        optional
+        autoComplete="tel"
+        inputMode="tel"
+        eroare={erori.phone}
+      />
 
       {format === 'hibrid' && (
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-sm font-medium">Cum vrei să participi?</legend>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="attendance_preference" value="fizic" defaultChecked />
+          <legend className="text-body-sm text-text-body mb-1 font-medium">
+            Cum vrei să participi?
+          </legend>
+          <label className="text-body-sm flex items-center gap-2">
+            <input
+              type="radio"
+              name="attendance_preference"
+              value="fizic"
+              defaultChecked
+              className="accent-primary-800"
+            />
             La fața locului
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="attendance_preference" value="online" />
+          <label className="text-body-sm flex items-center gap-2">
+            <input
+              type="radio"
+              name="attendance_preference"
+              value="online"
+              className="accent-primary-800"
+            />
             Online
           </label>
         </fieldset>
       )}
 
-      <label className="flex items-start gap-3 text-sm">
-        {/* Nebifat implicit — cerință GDPR, brief §10. */}
-        <input type="checkbox" name="consent" className="mt-1" />
-        <span>
-          {textConsimtamant ?? 'Sunt de acord cu prelucrarea datelor mele personale.'}{' '}
-          <a href="/confidentialitate" className="underline">
-            Politica de confidențialitate
-          </a>
-        </span>
-      </label>
-      {erori.consent && <p className="text-destructive text-sm">{erori.consent}</p>}
+      <BifaConsimtamant id="consent" name="consent" eroare={erori.consent}>
+        {textConsimtamant ?? 'Sunt de acord cu prelucrarea datelor mele personale.'}{' '}
+        <a href="/confidentialitate">Politica de confidențialitate</a>
+      </BifaConsimtamant>
 
       {eroareGenerala && (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-body-sm text-[#a62b1d]">
           {eroareGenerala}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={seTrimite}
-        className="bg-primary text-primary-foreground min-h-[52px] w-full rounded-xl px-6 font-medium disabled:opacity-60"
-      >
+      <Buton type="submit" varianta="cta" marime="lg" latimeIntreaga disabled={seTrimite}>
         {seTrimite ? 'Se trimite…' : eticheta}
-      </button>
+      </Buton>
 
-      <p className="text-muted-foreground text-center text-sm">
+      <p className="text-caption text-text-muted text-center">
         Nu trimitem spam. Te poți dezabona oricând.
       </p>
     </form>
-  )
-}
-
-function Camp({
-  id,
-  eticheta,
-  eroare,
-  children,
-}: {
-  id: string
-  eticheta: string
-  eroare?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium">
-        {eticheta}
-      </label>
-      {children}
-      {eroare && (
-        <p className="text-destructive text-sm" role="alert">
-          {eroare}
-        </p>
-      )}
-    </div>
   )
 }
