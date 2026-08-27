@@ -1,0 +1,22 @@
+# Anonimizarea contactelor fără activitate de peste perioada de retenție.
+# Rulează lunar; termenul se configurează în admin, la Setări.
+name: Retenție
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+
+jobs:
+  anonimizeaza:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rulează anonimizarea
+        run: |
+          cod=$(curl -sS -o /tmp/raspuns.json -w '%{http_code}' \
+            -X POST "${{ secrets.SITE_URL }}/api/cron/retentie" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 120)
+          cat /tmp/raspuns.json
+          echo
+          [ "$cod" = "200" ] || { echo "::error::Retenția a răspuns $cod"; exit 1; }

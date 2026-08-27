@@ -47,6 +47,8 @@ export const trackingSchema = z
     utm_content: z.string().max(200).optional(),
     utm_term: z.string().max(200).optional(),
     fbclid: z.string().max(500).optional(),
+    /** Cookie-ul `_fbp`, dacă pixelul a apucat să-l pună. */
+    fbp: z.string().max(200).optional(),
     referrer: z.string().max(1000).optional(),
     landing_page: z.string().max(500).optional(),
   })
@@ -54,6 +56,11 @@ export const trackingSchema = z
 
 export const inscriereSchema = z.object({
   slug: z.string().min(1),
+  /**
+   * Generat în browser și folosit identic de pixel și de Conversions API, ca
+   * Meta să deduplice cele două semnale (brief §9).
+   */
+  event_id: z.string().uuid().optional(),
   name: nume,
   email,
   phone: telefon,

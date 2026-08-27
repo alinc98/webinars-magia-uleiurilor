@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { FormularInscriere } from '@/components/public/formular-inscriere'
+import { MetaPixel } from '@/components/public/meta-pixel'
+import { getTextConsimtamant } from '@/lib/consimtamant-server'
 import { ETICHETA_FORMAT, formateazaDataOra } from '@/lib/format'
 import { getSlugsPublicate, getWebinarBySlug, speakeri } from '@/lib/webinars/queries'
 
@@ -31,7 +33,10 @@ export async function generateMetadata(
 
 export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   const { slug } = await props.params
-  const webinar = await getWebinarBySlug(slug)
+  const [webinar, textConsimtamant] = await Promise.all([
+    getWebinarBySlug(slug),
+    getTextConsimtamant(),
+  ])
 
   if (!webinar || !['published', 'live'].includes(webinar.status ?? '')) {
     notFound()
@@ -43,6 +48,8 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
 
   return (
     <main className="mx-auto w-full max-w-[760px] px-6 py-12">
+      <MetaPixel pixelId={webinar.meta_pixel_id ?? process.env.NEXT_PUBLIC_META_PIXEL_ID} />
+
       {/* TODO(M5): structura reală vine din designul importat — hero, „pentru
           cine e", „ce vei învăța", speakeri, testimoniale, bonus, FAQ.
           Aici e doar cât trebuie ca fluxul de înscriere să fie testabil. */}
@@ -119,7 +126,11 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
               Evenimentul e plin. Lista de așteptare se adaugă odată cu designul final.
             </p>
           ) : (
-            <FormularInscriere slug={slug} format={format} />
+            <FormularInscriere
+              slug={slug}
+              format={format}
+              textConsimtamant={textConsimtamant?.body}
+            />
           )}
         </div>
       </section>

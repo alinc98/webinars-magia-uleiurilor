@@ -105,6 +105,27 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_texts: {
+        Row: {
+          body: string
+          created_at: string
+          is_current: boolean
+          version: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          is_current?: boolean
+          version: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          is_current?: boolean
+          version?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           city: string | null
@@ -360,6 +381,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settings: {
+        Row: {
+          hub_empty_text: string
+          hub_intro: string
+          hub_title: string
+          id: boolean
+          retentie_luni: number
+          updated_at: string
+        }
+        Insert: {
+          hub_empty_text?: string
+          hub_intro?: string
+          hub_title?: string
+          id?: boolean
+          retentie_luni?: number
+          updated_at?: string
+        }
+        Update: {
+          hub_empty_text?: string
+          hub_intro?: string
+          hub_title?: string
+          id?: boolean
+          retentie_luni?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       speakers: {
         Row: {
@@ -702,6 +750,7 @@ export type Database = {
       }
     }
     Functions: {
+      anonimizeaza_contacte_vechi: { Args: never; Returns: number }
       check_rate_limit: {
         Args: { p_bucket: string; p_max?: number; p_window?: string }
         Returns: boolean

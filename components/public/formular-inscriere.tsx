@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { trimiteLeadPixel } from '@/components/public/meta-pixel'
 import { citesteTracking } from '@/lib/utm'
 import { inscriereSchema } from '@/lib/validations/inscriere'
 
 type Props = {
   slug: string
+  /** Textul acceptat, venit din admin cu versionare (brief §10). */
+  textConsimtamant?: string
   /** La `hibrid` se cere și modul de participare (brief §12.8). */
   format: 'online' | 'fizic' | 'hibrid'
   eticheta?: string
@@ -15,7 +18,12 @@ type Props = {
 
 type Erori = Record<string, string>
 
-export function FormularInscriere({ slug, format, eticheta = 'Vreau să particip' }: Props) {
+export function FormularInscriere({
+  slug,
+  format,
+  textConsimtamant,
+  eticheta = 'Vreau să particip',
+}: Props) {
   const router = useRouter()
   const [seTrimite, setSeTrimite] = useState(false)
   const [erori, setErori] = useState<Erori>({})
@@ -32,8 +40,13 @@ export function FormularInscriere({ slug, format, eticheta = 'Vreau să particip
     setEroareGenerala(null)
 
     const formData = new FormData(event.currentTarget)
+    // Același id pentru pixel și pentru Conversions API: fără el, Meta numără
+    // aceeași înscriere de două ori (brief §9).
+    const eventId = crypto.randomUUID()
+
     const payload = {
       slug,
+      event_id: eventId,
       name: String(formData.get('name') ?? ''),
       email: String(formData.get('email') ?? ''),
       phone: String(formData.get('phone') ?? ''),
@@ -75,6 +88,10 @@ export function FormularInscriere({ slug, format, eticheta = 'Vreau să particip
         setEroareGenerala(rezultat.message ?? 'Ceva n-a mers. Încearcă din nou.')
         return
       }
+
+      // Pixelul e montat doar dacă vizitatorul a acceptat cookie-urile; dacă
+      // nu, apelul e inofensiv și rămâne doar semnalul de server.
+      trimiteLeadPixel(eventId)
 
       router.push(`/inscriere-confirmata?w=${encodeURIComponent(slug)}`)
     } catch {
@@ -152,11 +169,10 @@ export function FormularInscriere({ slug, format, eticheta = 'Vreau să particip
         {/* Nebifat implicit — cerință GDPR, brief §10. */}
         <input type="checkbox" name="consent" className="mt-1" />
         <span>
-          Sunt de acord cu prelucrarea datelor mele conform{' '}
+          {textConsimtamant ?? 'Sunt de acord cu prelucrarea datelor mele personale.'}{' '}
           <a href="/confidentialitate" className="underline">
-            politicii de confidențialitate
+            Politica de confidențialitate
           </a>
-          .
         </span>
       </label>
       {erori.consent && <p className="text-destructive text-sm">{erori.consent}</p>}

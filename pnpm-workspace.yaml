@@ -3,3 +3,6 @@ allowBuilds:
   unrs-resolver: false
   # folosit doar de CLI-ul de preview al react-email, nu de `render`
   esbuild: false
+  # ar servi la încărcarea source map-urilor; nu folosim pluginul de build al
+  # Sentry, ci inițializare manuală
+  "@sentry/cli": false

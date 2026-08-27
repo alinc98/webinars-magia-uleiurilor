@@ -2,15 +2,23 @@ import { Antet } from '@/components/admin/antet'
 import { formateazaDataOra } from '@/lib/format'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+import { FormularConsimtamant, FormularRetentie } from './formulare'
+
 export const dynamic = 'force-dynamic'
 
-/** Deocamdată doar citire. Editarea vine în Faza 2 (PLAN.md §4, M6). */
 export default async function Page() {
   const supabase = createAdminClient()
-  const { data: utilizatori } = await supabase
-    .from('admin_users')
-    .select('*')
-    .order('created_at')
+
+  const [{ data: utilizatori }, { data: consimtamant }, { data: setari }, { data: istoric }] =
+    await Promise.all([
+      supabase.from('admin_users').select('*').order('created_at'),
+      supabase.from('consent_texts').select('*').eq('is_current', true).maybeSingle(),
+      supabase.from('settings').select('*').maybeSingle(),
+      supabase
+        .from('consent_texts')
+        .select('version, created_at, is_current')
+        .order('created_at', { ascending: false }),
+    ])
 
   const configurat = (nume: string) => (process.env[nume] ? 'configurat' : 'lipsește')
 
@@ -72,7 +80,53 @@ export default async function Page() {
           )}
         </section>
 
-        {/* TODO(M6): text de consimțământ cu versionare și politică de retenție. */}
+        <section className="rounded-lg border p-4">
+          <h2 className="font-medium">Textul de consimțământ</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Apare sub căsuța de bifat din formulare și în politica de
+            confidențialitate.
+          </p>
+          <div className="mt-4">
+            {consimtamant ? (
+              <FormularConsimtamant
+                versiuneCurenta={consimtamant.version}
+                textCurent={consimtamant.body}
+              />
+            ) : (
+              <p className="text-destructive text-sm">
+                Nu există niciun text activ. Formularele publice afișează un
+                text de rezervă.
+              </p>
+            )}
+          </div>
+
+          {(istoric ?? []).length > 1 && (
+            <details className="mt-4">
+              <summary className="cursor-pointer text-sm">Versiuni anterioare</summary>
+              <ul className="text-muted-foreground mt-2 flex flex-col gap-1 text-sm">
+                {(istoric ?? [])
+                  .filter((v) => !v.is_current)
+                  .map((v) => (
+                    <li key={v.version}>
+                      {v.version} · {formateazaDataOra(v.created_at)}
+                    </li>
+                  ))}
+              </ul>
+            </details>
+          )}
+        </section>
+
+        <section className="rounded-lg border p-4">
+          <h2 className="font-medium">Retenția datelor</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Contactele fără nicio activitate atâtea luni se anonimizează automat,
+            o dată pe lună. Înscrierile rămân, ca numărul de participanți la
+            evenimentele trecute să fie în continuare corect.
+          </p>
+          <div className="mt-4">
+            <FormularRetentie luni={setari?.retentie_luni ?? 24} />
+          </div>
+        </section>
       </div>
     </>
   )

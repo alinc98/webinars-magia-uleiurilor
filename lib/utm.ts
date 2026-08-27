@@ -29,6 +29,13 @@ export function citesteTracking(
   const fbclid = params.get('fbclid')?.trim()
   if (fbclid) tracking.fbclid = fbclid.slice(0, 500)
 
+  // `_fbp` e pus de pixel; există doar dacă vizitatorul a acceptat cookie-urile.
+  const fbp = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith('_fbp='))
+    ?.slice(5)
+  if (fbp) tracking.fbp = fbp.slice(0, 200)
+
   if (extra.referrer) tracking.referrer = extra.referrer.slice(0, 1000)
   if (extra.landingPage) tracking.landing_page = extra.landingPage.slice(0, 500)
 
