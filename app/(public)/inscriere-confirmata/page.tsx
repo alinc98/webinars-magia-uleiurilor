@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { formateazaDataOra } from '@/lib/format'
+import { linkGoogleCalendar } from '@/lib/ics'
 import { getWebinarBySlug } from '@/lib/webinars/queries'
 
 export const metadata: Metadata = {
@@ -30,7 +31,36 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
         </p>
       )}
 
-      {/* TODO(M3): buton „adaugă în calendar" (.ics + Google Calendar) */}
+      {webinar?.starts_at && (
+        <div className="mt-8 flex flex-wrap gap-3">
+          <a
+            href={linkGoogleCalendar({
+              uid: `${webinar.id}@magia-uleiurilor.ro`,
+              title: webinar.title!,
+              startsAt: webinar.starts_at,
+              durationMin: webinar.duration_min ?? 60,
+              location:
+                webinar.format === 'online'
+                  ? (webinar.join_url ?? undefined)
+                  : [webinar.venue_name, webinar.address, webinar.city]
+                      .filter(Boolean)
+                      .join(', ') || undefined,
+            })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-secondary text-secondary-foreground inline-flex min-h-[48px] items-center rounded-xl px-5 text-sm font-medium"
+          >
+            Adaugă în Google Calendar
+          </a>
+          <a
+            href={`/api/calendar/${webinar.slug}`}
+            className="border-border inline-flex min-h-[48px] items-center rounded-xl border px-5 text-sm font-medium"
+          >
+            Descarcă pentru alt calendar
+          </a>
+        </div>
+      )}
+
       {/* TODO(M5): reamintirea bonusului și o singură invitație discretă spre Instagram */}
     </main>
   )

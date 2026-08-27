@@ -1,0 +1,35 @@
+# Remindere și follow-up-uri, din 15 în 15 minute.
+#
+# Nu Vercel Cron: planul Hobby permite o singură rulare pe zi, ceea ce face
+# reminderele de 24h și 1h imposibile (PLAN.md §2.1).
+#
+# Cron-ul GitHub poate întârzia 5–20 de minute la ore de vârf. Nu contează:
+# endpoint-ul caută tot ce e scadent într-o fereastră, nu la un moment exact,
+# iar revendicarea din bază face rulările repetate inofensive.
+name: Remindere
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: remindere
+  cancel-in-progress: false
+
+jobs:
+  trimite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Declanșează cron-ul
+        run: |
+          cod=$(curl -sS -o /tmp/raspuns.json -w '%{http_code}' \
+            -X POST "${{ secrets.SITE_URL }}/api/cron/reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 120)
+          cat /tmp/raspuns.json
+          echo
+          if [ "$cod" != "200" ]; then
+            echo "::error::Cron-ul a răspuns $cod"
+            exit 1
+          fi

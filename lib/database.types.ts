@@ -706,6 +706,31 @@ export type Database = {
         Args: { p_bucket: string; p_max?: number; p_window?: string }
         Returns: boolean
       }
+      claim_followups: {
+        Args: { p_limit?: number }
+        Returns: {
+          attended: boolean
+          contact_id: string
+          registration_id: string
+          webinar_id: string
+        }[]
+      }
+      claim_reminders_24h: {
+        Args: { p_limit?: number }
+        Returns: {
+          contact_id: string
+          registration_id: string
+          webinar_id: string
+        }[]
+      }
+      claim_reminders_short: {
+        Args: { p_limit?: number }
+        Returns: {
+          contact_id: string
+          registration_id: string
+          webinar_id: string
+        }[]
+      }
       dashboard_stats: { Args: never; Returns: Json }
       join_waitlist: {
         Args: {
@@ -726,6 +751,10 @@ export type Database = {
           leads: number
           zi: string
         }[]
+      }
+      offset_reminder_scurt: {
+        Args: { p_format: Database["public"]["Enums"]["webinar_format"] }
+        Returns: string
       }
       register_for_webinar: {
         Args: {

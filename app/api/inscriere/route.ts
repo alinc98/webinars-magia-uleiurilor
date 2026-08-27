@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 
 import { citesteCerere, raspunsEroare } from '@/lib/api-helpers'
+import { getDestinatar, getWebinarPentruEmail } from '@/lib/email/destinatar'
+import { trimiteSablon } from '@/lib/email/trimite'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { inscriereSchema } from '@/lib/validations/inscriere'
 
@@ -35,7 +37,12 @@ export async function POST(request: Request) {
     return raspunsEroare('server_error', 500)
   }
 
-  const rezultat = data as { ok: boolean; reason?: string; contact_id?: string }
+  const rezultat = data as {
+    ok: boolean
+    reason?: string
+    contact_id?: string
+    webinar_id?: string
+  }
 
   if (!rezultat.ok) {
     // „E plin" și „ești deja înscris" nu sunt erori de server: formularul
@@ -44,7 +51,25 @@ export async function POST(request: Request) {
     return raspunsEroare(rezultat.reason ?? 'server_error', status)
   }
 
-  // TODO(M3): email de confirmare prin Resend, cu .ics atașat
+  // Confirmarea nu are voie să rateze înscrierea: dacă trimiterea pică, lead-ul
+  // rămâne în bază și în email_log cu status `queued`, iar omul vede tot ecranul
+  // de succes. Un email pierdut se retrimite din admin; un lead pierdut, nu.
+  if (rezultat.contact_id && rezultat.webinar_id) {
+    const [destinatar, webinar] = await Promise.all([
+      getDestinatar(rezultat.contact_id),
+      getWebinarPentruEmail(rezultat.webinar_id),
+    ])
+
+    if (destinatar && webinar) {
+      await trimiteSablon({
+        sablon: 'confirmare',
+        destinatar,
+        webinar,
+        cuCalendar: true,
+      })
+    }
+  }
+
   // TODO(M6): eveniment `Lead` prin Conversions API, cu același event_id ca pixelul
 
   return NextResponse.json({ ok: true, slug })
