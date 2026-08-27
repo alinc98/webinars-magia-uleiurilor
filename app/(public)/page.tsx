@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Card, Insigna, Supratitlu, Titlu1, Titlu2, Titlu3 } from '@/components/brand/bucati'
 import { ButonLink } from '@/components/brand/buton'
 import { Ornament } from '@/components/brand/ornament'
+import { Poza } from '@/components/brand/poza'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { ETICHETA_FORMAT, formateazaData, formateazaDataOra } from '@/lib/format'
 import { LINKURI } from '@/lib/linkuri'
@@ -153,12 +154,12 @@ function Speakeri({ webinar }: { webinar: WebinarPublic }) {
       <div className="flex -space-x-2">
         {lista.map((s) =>
           s.photo_url ? (
-            <Image
+            <Poza
               key={s.id}
               src={s.photo_url}
               alt={s.name}
-              width={64}
-              height={64}
+              latime={64}
+              inaltime={64}
               className="border-surface-raised size-8 rounded-full border-2 object-cover"
             />
           ) : (

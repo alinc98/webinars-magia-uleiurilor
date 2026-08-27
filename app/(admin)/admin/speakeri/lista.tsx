@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-react'
 
+import { IncarcaImagine } from '@/components/admin/incarca-imagine'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -239,11 +240,15 @@ function DialogSpeaker({
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="sp-photo">Link poză</Label>
-            <Input id="sp-photo" name="photo_url" defaultValue={speaker?.photo_url ?? ''} />
-            {/* TODO(M5): încărcare cu decupare pătrată în Supabase Storage. */}
-          </div>
+          <IncarcaImagine
+            nume="photo_url"
+            eticheta="Poză"
+            valoare={speaker?.photo_url}
+            folder="speakeri"
+            patrat
+            latura={800}
+            hint="Se decupează pătrat din centru — alege o poză în care fața e aproape de mijloc."
+          />
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">

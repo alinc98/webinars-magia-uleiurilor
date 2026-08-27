@@ -7,6 +7,7 @@ import { Accordion } from '@/components/brand/accordion'
 import { BaraSticky } from '@/components/brand/bara-sticky'
 import { Card, Fisa, Insigna, Supratitlu, Titlu1, Titlu2, Titlu3 } from '@/components/brand/bucati'
 import { Ornament } from '@/components/brand/ornament'
+import { Poza } from '@/components/brand/poza'
 import { FormularInscriere } from '@/components/public/formular-inscriere'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { MetaPixel } from '@/components/public/meta-pixel'
@@ -190,11 +191,11 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           {lista.length === 1 && gazda ? (
             <div className="mt-6 grid gap-6 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)] md:items-start">
               {gazda.photo_url ? (
-                <Image
+                <Poza
                   src={gazda.photo_url}
                   alt={gazda.name}
-                  width={440}
-                  height={440}
+                  latime={440}
+                  inaltime={440}
                   className="rounded-brand-lg w-full object-cover"
                 />
               ) : (
@@ -223,11 +224,11 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
                 <Card key={s.id}>
                   <div className="flex items-center gap-3">
                     {s.photo_url ? (
-                      <Image
+                      <Poza
                         src={s.photo_url}
                         alt={s.name}
-                        width={96}
-                        height={96}
+                        latime={96}
+                        inaltime={96}
                         className="size-14 shrink-0 rounded-full object-cover"
                       />
                     ) : (

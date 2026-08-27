@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 
+import { IncarcaImagine } from '@/components/admin/incarca-imagine'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -395,7 +396,14 @@ export function FormularWebinar({
             defaultValue={valori.seo_description ?? ''}
           />
         </Camp>
-        <input type="hidden" name="cover_image_url" value={valori.cover_image_url ?? ''} />
+        <IncarcaImagine
+          nume="cover_image_url"
+          eticheta="Imagine de copertă"
+          valoare={valori.cover_image_url}
+          folder="coperti"
+          latura={1200}
+          hint="Orizontală, folosită în listă și la partajarea pe rețele."
+        />
       </Sectiune>
 
       <div className="bg-background sticky bottom-0 -mx-5 flex flex-wrap items-center gap-3 border-t px-5 py-3 md:-mx-8 md:bottom-0 md:px-8">
