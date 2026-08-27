@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActiuneFormular } from '@/lib/formular'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import { trimiteMagicLink, type StareLogin } from './actions'
 const initial: StareLogin = { ok: false }
 
 export function FormularLogin({ redirectTo }: { redirectTo?: string }) {
-  const [stare, actiune, seTrimite] = useActionState(trimiteMagicLink, initial)
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(trimiteMagicLink, initial)
 
   if (stare.ok) {
     return (
@@ -25,7 +25,7 @@ export function FormularLogin({ redirectTo }: { redirectTo?: string }) {
   }
 
   return (
-    <form action={actiune} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <input type="hidden" name="redirectTo" value={redirectTo ?? ''} />
 
       <div className="flex flex-col gap-2">

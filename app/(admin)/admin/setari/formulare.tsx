@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useActiuneFormular } from '@/lib/formular'
 
 import { publicaConsimtamant, salveazaRetentie, type StareSetari } from './actions'
 
@@ -30,13 +31,13 @@ export function FormularConsimtamant({
   versiuneCurenta: string
   textCurent: string
 }) {
-  const [stare, trimite, seTrimite] = useActionState(publicaConsimtamant, initial)
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(publicaConsimtamant, initial)
   const [text, setText] = useState(textCurent)
 
   const modificat = text.trim() !== textCurent.trim()
 
   return (
-    <form action={trimite} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="body">Textul de sub căsuța de bifat</Label>
         <Textarea
@@ -74,10 +75,10 @@ export function FormularConsimtamant({
 }
 
 export function FormularRetentie({ luni }: { luni: number }) {
-  const [stare, trimite, seTrimite] = useActionState(salveazaRetentie, initial)
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(salveazaRetentie, initial)
 
   return (
-    <form action={trimite} className="flex flex-wrap items-end gap-3">
+    <form onSubmit={onSubmit} noValidate className="flex flex-wrap items-end gap-3">
       <div className="flex w-32 flex-col gap-1.5">
         <Label htmlFor="retentie_luni">Luni</Label>
         <Input

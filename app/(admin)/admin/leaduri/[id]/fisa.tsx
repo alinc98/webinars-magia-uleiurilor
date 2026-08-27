@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useActiuneFormular } from '@/lib/formular'
 import { formateazaDataOra } from '@/lib/format'
 
 import { actualizeazaContact, stergeContact, type StareContact } from './actions'
@@ -36,7 +37,7 @@ type Valori = {
 const initial: StareContact = { ok: false }
 
 export function FisaContact({ id, valori }: { id: string; valori: Valori }) {
-  const [stare, trimite, seTrimite] = useActionState(
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(
     (s: StareContact, fd: FormData) => actualizeazaContact(id, s, fd),
     initial
   )
@@ -45,7 +46,7 @@ export function FisaContact({ id, valori }: { id: string; valori: Valori }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <form action={trimite} className="flex flex-col gap-4 rounded-lg border p-4">
+      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 rounded-lg border p-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="c-name">Nume</Label>
           <Input id="c-name" name="name" defaultValue={valori.name} required />

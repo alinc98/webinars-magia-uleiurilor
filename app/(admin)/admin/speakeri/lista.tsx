@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+
+import { useActiuneFormular } from '@/lib/formular'
 
 import {
   dezarhiveazaSpeaker,
@@ -184,7 +186,7 @@ function DialogSpeaker({
   setDeschis: (v: boolean) => void
   speaker: Speaker | null
 }) {
-  const [stare, trimite, seTrimite] = useActionState(
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(
     (s: StareSpeaker, fd: FormData) => salveazaSpeaker(speaker?.id ?? null, s, fd),
     initial
   )
@@ -200,7 +202,7 @@ function DialogSpeaker({
           <DialogTitle>{speaker ? 'Editează speakerul' : 'Speaker nou'}</DialogTitle>
         </DialogHeader>
 
-        <form action={trimite} className="flex flex-col gap-4">
+        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="sp-name">Nume</Label>
             <Input id="sp-name" name="name" defaultValue={speaker?.name} required />

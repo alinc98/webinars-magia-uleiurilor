@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { useActiuneFormular } from '@/lib/formular'
 import { sugereazaSlug } from '@/lib/validations/webinar'
 import type { StareFormular } from '@/app/(admin)/admin/webinarii/actions'
 
@@ -70,7 +71,7 @@ export function FormularWebinar({
   valori: ValoriWebinar
   speakeri: SpeakerOptiune[]
 }) {
-  const [stare, trimite, seTrimite] = useActionState(actiune, initial)
+  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(actiune, initial)
   const idFormular = useId()
 
   const [format, setFormat] = useState(valori.format ?? 'online')
@@ -108,7 +109,7 @@ export function FormularWebinar({
   }
 
   return (
-    <form action={trimite} className="flex flex-col gap-8 px-5 py-6 md:px-8">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8 px-5 py-6 md:px-8">
       <Sectiune titlu="Informații de bază">
         <Camp eticheta="Titlu" id={`${idFormular}-title`} eroare={e.title}>
           <Input
