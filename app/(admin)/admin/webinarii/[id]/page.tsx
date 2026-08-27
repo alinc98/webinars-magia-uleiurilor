@@ -1,0 +1,90 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+
+import { Antet } from '@/components/admin/antet'
+import { BadgeStatus } from '@/components/admin/badge-status'
+import { FormularWebinar } from '@/components/admin/formular-webinar'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+import { EditorWebinar } from './editor'
+
+export const dynamic = 'force-dynamic'
+
+export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
+  const { id } = await props.params
+  const supabase = createAdminClient()
+
+  const [{ data: webinar }, { data: speakeri }, { data: legaturi }, { count: inscrisi }] =
+    await Promise.all([
+      supabase.from('webinars').select('*').eq('id', id).maybeSingle(),
+      supabase
+        .from('speakers')
+        .select('id, name, role_title, is_default')
+        .is('archived_at', null)
+        .order('is_default', { ascending: false })
+        .order('name'),
+      supabase
+        .from('webinar_speakers')
+        .select('speaker_id, role_label, sort_order')
+        .eq('webinar_id', id)
+        .order('sort_order'),
+      supabase
+        .from('registrations')
+        .select('id', { count: 'exact', head: true })
+        .eq('webinar_id', id)
+        .eq('kind', 'live'),
+    ])
+
+  if (!webinar) notFound()
+
+  return (
+    <>
+      <Antet titlu={webinar.title} descriere={`${inscrisi ?? 0} înscriși`}>
+        <BadgeStatus status={webinar.status} />
+        <Link
+          href={`/admin/leaduri?webinar=${webinar.id}`}
+          className="text-sm underline underline-offset-4"
+        >
+          Vezi înscrișii
+        </Link>
+      </Antet>
+
+      <EditorWebinar
+        id={webinar.id}
+        valori={{
+          id: webinar.id,
+          title: webinar.title,
+          slug: webinar.slug,
+          subtitle: webinar.subtitle,
+          description: webinar.description,
+          learning_points: (webinar.learning_points as string[]) ?? [],
+          for_whom: (webinar.for_whom as string[]) ?? [],
+          bonus_title: webinar.bonus_title,
+          bonus_description: webinar.bonus_description,
+          starts_at: webinar.starts_at,
+          duration_min: webinar.duration_min,
+          format: webinar.format,
+          join_url: webinar.join_url,
+          venue_name: webinar.venue_name,
+          address: webinar.address,
+          city: webinar.city,
+          county: webinar.county,
+          map_url: webinar.map_url,
+          venue_notes: webinar.venue_notes,
+          capacity: webinar.capacity,
+          cover_image_url: webinar.cover_image_url,
+          status: webinar.status,
+          listed: webinar.listed,
+          is_featured: webinar.is_featured,
+          replay_public: webinar.replay_public,
+          recording_url: webinar.recording_url,
+          seo_title: webinar.seo_title,
+          seo_description: webinar.seo_description,
+          speaker_ids: (legaturi ?? []).map((l) => l.speaker_id),
+          gazda_id: (legaturi ?? []).find((l) => l.role_label === 'gazda')?.speaker_id,
+        }}
+        speakeri={speakeri ?? []}
+      />
+    </>
+  )
+}
