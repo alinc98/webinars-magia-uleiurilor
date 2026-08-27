@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { BifaConsimtamant, Camp } from '@/components/brand/campuri'
 import { Buton } from '@/components/brand/buton'
 import { trimiteLeadPixel } from '@/components/public/meta-pixel'
+import { LINKURI } from '@/lib/linkuri'
 import { citesteTracking } from '@/lib/utm'
 import { inscriereSchema } from '@/lib/validations/inscriere'
 
@@ -179,7 +180,9 @@ export function FormularInscriere({
 
       <BifaConsimtamant id="consent" name="consent" eroare={erori.consent}>
         {textConsimtamant ?? 'Sunt de acord cu prelucrarea datelor mele personale.'}{' '}
-        <a href="/confidentialitate">Politica de confidențialitate</a>
+        <a href={LINKURI.confidentialitate} target="_blank" rel="noopener noreferrer">
+          Politica de confidențialitate
+        </a>
       </BifaConsimtamant>
 
       {eroareGenerala && (

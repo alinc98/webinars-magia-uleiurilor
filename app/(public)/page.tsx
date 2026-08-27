@@ -7,6 +7,7 @@ import { ButonLink } from '@/components/brand/buton'
 import { Ornament } from '@/components/brand/ornament'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { ETICHETA_FORMAT, formateazaData, formateazaDataOra } from '@/lib/format'
+import { LINKURI } from '@/lib/linkuri'
 import { getWebinariiHub, speakeri, type WebinarPublic } from '@/lib/webinars/queries'
 
 export const revalidate = 300
@@ -33,7 +34,7 @@ export default async function Page() {
           className="h-9 w-auto"
         />
         <a
-          href="https://magia-uleiurilor.ro"
+          href={LINKURI.sitePrincipal}
           className="text-caption text-text-muted hover:text-primary-800 underline"
         >
           magia-uleiurilor.ro

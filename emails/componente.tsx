@@ -1,3 +1,4 @@
+import { LINKURI } from '@/lib/linkuri'
 import {
   Body,
   Container,
@@ -73,7 +74,10 @@ export function Sablon({
 
           <Hr style={{ borderColor: culori.bordura, margin: '28px 0 16px' }} />
           <Text style={stiluri.discret}>
-            Magia Uleiurilor Esențiale · Andreea Gligor
+            Magia Uleiurilor Esențiale · Andreea Gligor ·{' '}
+            <Link href={LINKURI.confidentialitate} style={{ color: culori.discret }}>
+              Confidențialitate
+            </Link>
           </Text>
           {unsubscribeUrl && (
             <Text style={stiluri.discret}>

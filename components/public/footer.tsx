@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { LINKURI } from '@/lib/linkuri'
 
 const LINK =
   'min-h-touch inline-flex items-center underline hover:text-primary-800'
@@ -10,19 +10,24 @@ export function FooterPublic() {
         <span className="min-h-touch inline-flex items-center">
           Magia Uleiurilor Esențiale
         </span>
-        <Link href="/confidentialitate" className={LINK}>
+        {/* Documentele legale sunt pe site-ul principal, ca să existe într-un
+            singur loc (vezi lib/linkuri.ts). */}
+        <a href={LINKURI.termeni} className={LINK} rel="noopener noreferrer">
+          Termeni și condiții
+        </a>
+        <a href={LINKURI.confidentialitate} className={LINK} rel="noopener noreferrer">
           Confidențialitate
-        </Link>
-        <Link href="/cookies" className={LINK}>
+        </a>
+        <a href={LINKURI.cookies} className={LINK} rel="noopener noreferrer">
           Cookie-uri
-        </Link>
-        <a href="mailto:contact@magia-uleiurilor.ro" className={LINK}>
+        </a>
+        <a href={LINKURI.contact} className={LINK}>
           Contact
         </a>
-        <a href="https://anpc.ro" className={LINK} rel="noopener noreferrer">
+        <a href={LINKURI.anpc} className={LINK} rel="noopener noreferrer">
           ANPC
         </a>
-        <a href="https://ec.europa.eu/consumers/odr" className={LINK} rel="noopener noreferrer">
+        <a href={LINKURI.sol} className={LINK} rel="noopener noreferrer">
           SOL
         </a>
       </div>

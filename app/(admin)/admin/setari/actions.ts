@@ -66,7 +66,9 @@ export async function publicaConsimtamant(
   }
 
   revalidatePath('/admin/setari')
-  revalidatePath('/confidentialitate')
+  // Textul apare sub căsuța de bifat de pe fiecare pagină de webinar.
+  revalidatePath('/webinar/[slug]', 'page')
+  revalidatePath('/')
   return { ok: true, mesaj: `Versiunea ${version} e activă acum.` }
 }
 

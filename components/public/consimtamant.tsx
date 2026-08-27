@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useSyncExternalStore } from 'react'
 
+import { LINKURI } from '@/lib/linkuri'
 import {
   citesteConsimtamant,
   COOKIE_CONSIMTAMANT,
@@ -81,7 +82,12 @@ export function FurnizorConsimtamant({ children }: { children: React.ReactNode }
             <p className="flex-1 text-sm">
               Folosim cookie-uri ca să înțelegem ce reclame aduc oameni aici.
               Fără acceptul tău nu se încarcă niciunul.{' '}
-              <a href="/cookies" className="underline">
+              <a
+                href={LINKURI.cookies}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
                 Detalii
               </a>
             </p>

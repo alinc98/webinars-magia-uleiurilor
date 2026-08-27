@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { LINKURI } from '@/lib/linkuri'
 import { citesteTracking } from '@/lib/utm'
 import { listaAsteptareSchema } from '@/lib/validations/inscriere'
 
@@ -122,7 +123,12 @@ export function FormularListaAsteptare({
         <input type="checkbox" name="consent" className="mt-1" />
         <span>
           Sunt de acord cu prelucrarea datelor conform{' '}
-          <a href="/confidentialitate" className="underline">
+          <a
+            href={LINKURI.confidentialitate}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
             politicii de confidențialitate
           </a>
           .
