@@ -4,12 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   CalendarDays,
+  Globe,
   LayoutDashboard,
   LogOut,
   Settings,
-  Users,
   UserSquare2,
-  Globe,
+  Users,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ const INTRARI = [
   { href: '/admin/setari', eticheta: 'Setări', Icoana: Settings },
 ]
 
-/** Cele patru intrări cele mai folosite de pe telefon, în ziua evenimentului. */
+/** Cele patru intrări folosite de pe telefon, în ziua evenimentului. */
 const PE_MOBIL = ['/admin', '/admin/webinarii', '/admin/leaduri', '/admin/setari']
 
 export function Navigatie({ utilizator }: { utilizator: AdminUser }) {
@@ -35,39 +35,42 @@ export function Navigatie({ utilizator }: { utilizator: AdminUser }) {
 
   return (
     <>
-      <aside className="bg-sidebar hidden w-60 shrink-0 flex-col border-r md:flex">
-        <div className="px-5 py-5">
-          <p className="text-sm font-semibold">Magia Uleiurilor</p>
-          <p className="text-muted-foreground text-xs">Panou de administrare</p>
+      <aside className="bg-admin-shell hidden w-52 shrink-0 flex-col py-3 md:flex">
+        <div className="text-sage-200 px-3 pb-3 text-[13px] font-semibold">
+          Magia Uleiurilor · Admin
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 px-3">
-          {INTRARI.map(({ href, eticheta, Icoana, exact }) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={esteActiv(href, exact) ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm',
-                esteActiv(href, exact)
-                  ? 'bg-primary text-primary-foreground font-medium'
-                  : 'hover:bg-accent'
-              )}
-            >
-              <Icoana className="size-4 shrink-0" />
-              {eticheta}
-            </Link>
-          ))}
+        <nav className="flex flex-1 flex-col">
+          {INTRARI.map(({ href, eticheta, Icoana, exact }) => {
+            const activ = esteActiv(href, exact)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={activ ? 'page' : undefined}
+                className={cn(
+                  'flex h-10 items-center gap-2.5 px-3 text-sm',
+                  // Indicatorul auriu e singurul loc din admin unde apare aurul.
+                  activ
+                    ? 'bg-white/12 font-semibold text-white shadow-[inset_3px_0_0_var(--color-gold-300)]'
+                    : 'text-sage-100 hover:bg-white/8'
+                )}
+              >
+                <Icoana className="size-4 shrink-0" />
+                {eticheta}
+              </Link>
+            )
+          })}
         </nav>
 
-        <div className="border-t px-3 py-3">
-          <p className="truncate px-2 text-xs" title={utilizator.email}>
+        <div className="mt-3 border-t border-white/10 px-3 pt-3">
+          <p className="text-sage-200 truncate text-xs" title={utilizator.email}>
             {utilizator.name ?? utilizator.email}
           </p>
           <form action="/auth/iesire" method="post">
             <button
               type="submit"
-              className="hover:bg-accent mt-1 flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm"
+              className="text-sage-100 mt-1 flex h-8 w-full items-center gap-2 text-sm hover:text-white"
             >
               <LogOut className="size-4" />
               Ieși din cont
@@ -76,24 +79,28 @@ export function Navigatie({ utilizator }: { utilizator: AdminUser }) {
         </div>
       </aside>
 
-      {/* Pe mobil sidebar-ul devine bară jos: Andreea verifică înscrierile de pe
-          telefon în ziua evenimentului (brief §17). */}
-      <nav className="bg-background fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t md:hidden">
+      {/* Pe mobil, bară de navigație jos (brief §17). */}
+      <nav className="bg-admin-shell fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 md:hidden">
         {INTRARI.filter((i) => PE_MOBIL.includes(i.href)).map(
-          ({ href, eticheta, Icoana, exact }) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={esteActiv(href, exact) ? 'page' : undefined}
-              className={cn(
-                'flex flex-col items-center gap-1 py-2.5 text-[11px]',
-                esteActiv(href, exact) ? 'text-primary font-medium' : 'text-muted-foreground'
-              )}
-            >
-              <Icoana className="size-5" />
-              {eticheta}
-            </Link>
-          )
+          ({ href, eticheta, Icoana, exact }) => {
+            const activ = esteActiv(href, exact)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={activ ? 'page' : undefined}
+                className={cn(
+                  'flex flex-col items-center gap-1 py-2.5 text-[11px]',
+                  activ
+                    ? 'font-semibold text-white shadow-[inset_0_3px_0_var(--color-gold-300)]'
+                    : 'text-sage-200'
+                )}
+              >
+                <Icoana className="size-5" />
+                {eticheta}
+              </Link>
+            )
+          }
         )}
       </nav>
     </>

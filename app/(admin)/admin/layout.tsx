@@ -16,7 +16,9 @@ export default async function AdminLayout({ children }: LayoutProps<'/admin'>) {
   if (!utilizator) redirect('/login')
 
   return (
-    <div className="flex min-h-svh flex-col md:flex-row">
+    // Inter peste tot, fundal alb, fără ornamente: adminul e deliberat diferit
+    // de paginile publice (brief §13).
+    <div className="bg-admin-bg text-text-body font-body flex min-h-svh flex-col md:flex-row">
       <Navigatie utilizator={utilizator} />
       <div className="min-w-0 flex-1 pb-20 md:pb-0">{children}</div>
       <Toaster />

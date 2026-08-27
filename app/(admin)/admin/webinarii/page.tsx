@@ -51,8 +51,9 @@ export default async function Page(props: PageProps<'/admin/webinarii'>) {
               href={valoare === 'toate' ? '/admin/webinarii' : `/admin/webinarii?status=${valoare}`}
               className={
                 (status ?? 'toate') === valoare
-                  ? 'bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium'
-                  : 'hover:bg-accent rounded-md px-3 py-1.5 text-sm'
+                  // Un filtru nu e o acțiune primară, deci verde, nu teracotă.
+                  ? 'bg-primary-800 rounded-md px-3 py-1.5 text-sm font-medium text-white'
+                  : 'hover:bg-accent text-text-muted rounded-md px-3 py-1.5 text-sm'
               }
             >
               {eticheta}

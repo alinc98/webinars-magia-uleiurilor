@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { Antet } from '@/components/admin/antet'
 import { BadgeStatusContact } from '@/components/admin/badge-status'
+import { CapTabel, Celula, RandTabel, Tabel } from '@/components/admin/tabel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formateazaDataScurta } from '@/lib/format'
@@ -70,34 +71,34 @@ export default async function Page(props: PageProps<'/admin/leaduri'>) {
           <>
             {/* Pe desktop tabel, pe mobil carduri stivuite — Andreea verifică
                 înscrierile de pe telefon în ziua evenimentului (brief §17). */}
-            <div className="mt-5 hidden overflow-x-auto rounded-lg border md:block">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-left">
-                  <tr>
-                    <th className="px-4 py-2.5 font-medium">Nume</th>
-                    <th className="px-4 py-2.5 font-medium">Email</th>
-                    <th className="px-4 py-2.5 font-medium">Telefon</th>
-                    <th className="px-4 py-2.5 font-medium">Status</th>
-                    <th className="px-4 py-2.5 font-medium">Tag-uri</th>
-                    <th className="px-4 py-2.5 text-right font-medium">Webinarii</th>
-                    <th className="px-4 py-2.5 font-medium">Sursă</th>
-                    <th className="px-4 py-2.5 font-medium">Primul contact</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {(leaduri ?? []).map((c) => (
-                    <tr key={c.id} className="hover:bg-muted/30 h-11">
-                      <td className="px-4">
-                        <Link href={`/admin/leaduri/${c.id}`} className="font-medium hover:underline">
+            <div className="mt-4 hidden md:block">
+              <Tabel>
+                <CapTabel
+                  coloane={[
+                    'Nume',
+                    'Email',
+                    'Telefon',
+                    'Status',
+                    'Tag-uri',
+                    { text: 'Webinarii', laDreapta: true },
+                    'Sursă',
+                    'Primul contact',
+                  ]}
+                />
+                <tbody>
+                  {(leaduri ?? []).map((c, i) => (
+                    <RandTabel key={c.id} index={i}>
+                      <Celula accentuat>
+                        <Link href={`/admin/leaduri/${c.id}`} className="hover:underline">
                           {c.name}
                         </Link>
-                      </td>
-                      <td className="text-muted-foreground px-4">{c.email}</td>
-                      <td className="text-muted-foreground px-4">{c.phone ?? '—'}</td>
-                      <td className="px-4">
+                      </Celula>
+                      <Celula discret>{c.email}</Celula>
+                      <Celula discret>{c.phone ?? '—'}</Celula>
+                      <Celula>
                         <BadgeStatusContact status={c.status!} />
-                      </td>
-                      <td className="px-4">
+                      </Celula>
+                      <Celula>
                         <div className="flex flex-wrap gap-1">
                           {(c.tags ?? []).map((t) => (
                             <Badge key={t} variant="outline" className="text-xs">
@@ -105,21 +106,19 @@ export default async function Page(props: PageProps<'/admin/leaduri'>) {
                             </Badge>
                           ))}
                         </div>
-                      </td>
-                      <td className="px-4 text-right tabular-nums">{c.registrations_count}</td>
-                      <td className="text-muted-foreground px-4">{c.first_utm_source ?? '—'}</td>
-                      <td className="text-muted-foreground px-4">
-                        {formateazaDataScurta(c.created_at!)}
-                      </td>
-                    </tr>
+                      </Celula>
+                      <Celula laDreapta>{c.registrations_count}</Celula>
+                      <Celula discret>{c.first_utm_source ?? '—'}</Celula>
+                      <Celula discret>{formateazaDataScurta(c.created_at!)}</Celula>
+                    </RandTabel>
                   ))}
                 </tbody>
-              </table>
+              </Tabel>
             </div>
 
-            <ul className="mt-5 flex flex-col gap-2 md:hidden">
+            <ul className="mt-4 flex flex-col gap-2 md:hidden">
               {(leaduri ?? []).map((c) => (
-                <li key={c.id} className="rounded-lg border p-3">
+                <li key={c.id} className="border-admin-border rounded-lg border p-3">
                   <div className="flex items-start justify-between gap-2">
                     <Link href={`/admin/leaduri/${c.id}`} className="font-medium">
                       {c.name}

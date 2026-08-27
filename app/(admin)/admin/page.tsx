@@ -78,7 +78,9 @@ export default async function Page() {
                 {(zile ?? []).map((z) => (
                   <div
                     key={z.zi}
-                    className="bg-primary/80 min-h-[2px] flex-1 rounded-t-sm"
+                    // Verde, nu teracotă: teracota e rezervată acțiunii
+                    // primare, iar un grafic nu e o acțiune.
+                    className="bg-primary-700 min-h-[2px] flex-1 rounded-t-sm"
                     style={{ height: `${(Number(z.leads) / maxim) * 100}%` }}
                     title={`${z.zi}: ${z.leads}`}
                   />

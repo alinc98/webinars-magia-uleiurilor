@@ -120,6 +120,19 @@
   --shadow-brand-1: 0 1px 2px rgba(48, 45, 41, 0.05), 0 1px 3px rgba(48, 45, 41, 0.04);
   --shadow-brand-2: 0 2px 4px rgba(48, 45, 41, 0.04), 0 6px 16px -4px rgba(48, 45, 41, 0.08);
 
+  /* Panoul de administrare e deliberat altfel: densitate în loc de atmosferă,
+     fundal alb, fără ornamente, Inter peste tot. Din brand rămân verdele
+     închis în shell, teracota doar pe acțiunea primară și auriul doar ca
+     indicator de element activ. */
+  --color-admin-bg: #ffffff;
+  --color-admin-shell: var(--color-primary-900);
+  --color-admin-row-alt: var(--color-warm-50);
+  --color-admin-border: var(--color-warm-300);
+
+  --color-success: #1f7a46; --color-success-surface: #e8f4ec;
+  --color-warning: #8a5a0b; --color-warning-surface: var(--color-gold-50);
+  --color-danger: #a62b1d;  --color-danger-surface: #fdeceb;
+
   --container-form: 520px;
   --container-prose: 680px;
   --container-content: 960px;
@@ -221,6 +234,29 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Componentele shadcn din admin citesc tokenii lor proprii. Îi legăm de brand
+   într-un singur loc: acțiunea primară devine teracotă — singura din ecran,
+   cum cere design system-ul — iar inelul de focus, verde. */
+:root {
+  --primary: var(--color-cta);
+  --primary-foreground: #ffffff;
+  --ring: var(--color-primary-700);
+  --border: var(--color-warm-200);
+  --input: var(--color-warm-300);
+  --muted: var(--color-warm-100);
+  --muted-foreground: var(--color-warm-700);
+  --accent: var(--color-warm-100);
+  --accent-foreground: var(--color-warm-900);
+  --foreground: var(--color-warm-900);
+  --card: #ffffff;
+  --card-foreground: var(--color-warm-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-warm-900);
+  --secondary: var(--color-warm-100);
+  --secondary-foreground: var(--color-warm-900);
+  --destructive: #a62b1d;
 }
 
 @layer base {
