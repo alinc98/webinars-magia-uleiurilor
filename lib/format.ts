@@ -41,3 +41,11 @@ export const ETICHETA_FORMAT: Record<string, string> = {
   fizic: 'La fața locului',
   hibrid: 'Online și la fața locului',
 }
+
+/**
+ * „Webinar" e greșit pentru un atelier la care oamenii vin pe viu. Cuvântul se
+ * schimbă după format, ca bara de sus și supratitlul să nu contrazică pagina.
+ */
+export function numesteEvenimentul(format: string): string {
+  return format === 'online' ? 'Webinar' : 'Eveniment'
+}

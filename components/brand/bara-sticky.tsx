@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 
-import { formateazaDataOra } from '@/lib/format'
+import { formateazaDataOra, numesteEvenimentul } from '@/lib/format'
 
 function ramas(pana: string) {
   const diferenta = new Date(pana).getTime() - Date.now()
@@ -27,9 +27,11 @@ function ramas(pana: string) {
  */
 export function BaraSticky({
   startsAt,
+  format = 'online',
   gratuit = true,
 }: {
   startsAt: string
+  format?: string
   gratuit?: boolean
 }) {
   // Trecerea timpului e o sursă externă, nu stare React. Un interval care
@@ -59,7 +61,8 @@ export function BaraSticky({
         ) : (
           <>
             <span className="text-caption font-semibold tracking-wide uppercase">
-              {gratuit ? 'Webinar gratuit' : 'Webinar'}
+              {numesteEvenimentul(format)}
+              {gratuit ? ' gratuit' : ''}
             </span>
             <span className="text-caption text-white/80">
               {formateazaDataOra(startsAt)}

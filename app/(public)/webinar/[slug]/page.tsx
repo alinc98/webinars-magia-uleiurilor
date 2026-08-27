@@ -11,7 +11,7 @@ import { FormularInscriere } from '@/components/public/formular-inscriere'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { MetaPixel } from '@/components/public/meta-pixel'
 import { getTextConsimtamant } from '@/lib/consimtamant-server'
-import { ETICHETA_FORMAT, formateazaDataOra } from '@/lib/format'
+import { ETICHETA_FORMAT, formateazaDataOra, numesteEvenimentul } from '@/lib/format'
 import { getSlugsPublicate, getWebinarBySlug, speakeri } from '@/lib/webinars/queries'
 
 export const revalidate = 300
@@ -79,7 +79,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   return (
     <div className="bg-brand-bg text-text-body font-body">
       <MetaPixel pixelId={webinar.meta_pixel_id ?? process.env.NEXT_PUBLIC_META_PIXEL_ID} />
-      <BaraSticky startsAt={webinar.starts_at!} />
+      <BaraSticky startsAt={webinar.starts_at!} format={format} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className="bg-surface relative overflow-hidden px-5 pt-8 pb-12">
@@ -101,7 +101,8 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           />
 
           <Supratitlu>
-            Webinar gratuit{webinar.capacity ? ' · locuri limitate' : ''}
+            {numesteEvenimentul(format)} gratuit
+            {webinar.capacity ? ' · locuri limitate' : ''}
           </Supratitlu>
 
           <Titlu1 className="mt-3">{webinar.title}</Titlu1>
