@@ -1,0 +1,7 @@
+.next
+node_modules
+pnpm-lock.yaml
+supabase/.temp
+
+# documentele proiectului se scriu de mână, nu se reformatează automat
+*.md
