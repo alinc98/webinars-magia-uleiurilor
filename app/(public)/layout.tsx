@@ -1,5 +1,6 @@
 import { FurnizorConsimtamant } from '@/components/public/consimtamant'
 import { FooterPublic } from '@/components/public/footer'
+import { MetaPixel } from '@/components/public/meta-pixel'
 
 /**
  * Bannerul de cookie-uri și footerul legal trăiesc aici, deci acoperă toate
@@ -8,6 +9,7 @@ import { FooterPublic } from '@/components/public/footer'
 export default function PublicLayout({ children }: LayoutProps<'/'>) {
   return (
     <FurnizorConsimtamant>
+      <MetaPixel pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID} />
       <div className="flex min-h-svh flex-col">
         <div className="flex-1">{children}</div>
         <FooterPublic />

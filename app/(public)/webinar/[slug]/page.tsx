@@ -18,7 +18,7 @@ import { Ornament } from '@/components/brand/ornament'
 import { Poza } from '@/components/brand/poza'
 import { FormularInscriere } from '@/components/public/formular-inscriere'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
-import { MetaPixel } from '@/components/public/meta-pixel'
+import { UrmareteViewContent } from '@/components/public/meta-pixel'
 import { getTextConsimtamant } from '@/lib/consimtamant-server'
 import { openGraph } from '@/lib/seo'
 import {
@@ -112,9 +112,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
 
   return (
     <div className="bg-brand-bg text-text-body font-body">
-      <MetaPixel
-        pixelId={webinar.meta_pixel_id ?? process.env.NEXT_PUBLIC_META_PIXEL_ID}
-      />
+      <UrmareteViewContent />
       <BaraSticky startsAt={webinar.starts_at!} format={format} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
