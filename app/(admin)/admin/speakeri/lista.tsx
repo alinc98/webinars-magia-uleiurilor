@@ -71,14 +71,18 @@ export function ListaSpeakeri({ speakeri }: { speakeri: Speaker[] }) {
               <div className="min-w-0">
                 <p className="font-medium">{s.name}</p>
                 {s.role_title && (
-                  <p className="text-muted-foreground text-sm">{s.role_title}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {s.role_title}
+                  </p>
                 )}
               </div>
               {s.is_default && <Badge variant="secondary">implicit</Badge>}
             </div>
 
             {s.bio_short && (
-              <p className="text-muted-foreground mt-2 line-clamp-3 text-sm">{s.bio_short}</p>
+              <p className="text-muted-foreground mt-2 line-clamp-3 text-sm">
+                {s.bio_short}
+              </p>
             )}
 
             <div className="mt-3 flex items-center justify-between">
@@ -117,10 +121,15 @@ export function ListaSpeakeri({ speakeri }: { speakeri: Speaker[] }) {
 
       {arhivati.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-muted-foreground text-sm font-medium">Arhivați</h2>
+          <h2 className="text-muted-foreground text-sm font-medium">
+            Arhivați
+          </h2>
           <ul className="mt-2 flex flex-col gap-2">
             {arhivati.map((s) => (
-              <li key={s.id} className="flex items-center justify-between rounded-md border p-3">
+              <li
+                key={s.id}
+                className="flex items-center justify-between rounded-md border p-3"
+              >
                 <span className="text-sm">{s.name}</span>
                 <Button
                   variant="ghost"
@@ -144,11 +153,16 @@ export function ListaSpeakeri({ speakeri }: { speakeri: Speaker[] }) {
         key={inEditare?.id ?? 'nou'}
       />
 
-      <Dialog open={Boolean(deSters)} onOpenChange={(v) => !v && setDeSters(null)}>
+      <Dialog
+        open={Boolean(deSters)}
+        onOpenChange={(v) => !v && setDeSters(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {deSters && deSters.webinarii > 0 ? 'Arhivează speakerul' : 'Șterge speakerul'}
+              {deSters && deSters.webinarii > 0
+                ? 'Arhivează speakerul'
+                : 'Șterge speakerul'}
             </DialogTitle>
             <DialogDescription>
               {deSters && deSters.webinarii > 0
@@ -161,7 +175,9 @@ export function ListaSpeakeri({ speakeri }: { speakeri: Speaker[] }) {
               Renunță
             </Button>
             <Button
-              variant={deSters && deSters.webinarii > 0 ? 'default' : 'destructive'}
+              variant={
+                deSters && deSters.webinarii > 0 ? 'default' : 'destructive'
+              }
               disabled={inCurs}
               onClick={() => {
                 const id = deSters!.id
@@ -169,7 +185,9 @@ export function ListaSpeakeri({ speakeri }: { speakeri: Speaker[] }) {
                 porneste(() => stergeSauArhiveazaSpeaker(id))
               }}
             >
-              {deSters && deSters.webinarii > 0 ? 'Arhivează' : 'Șterge definitiv'}
+              {deSters && deSters.webinarii > 0
+                ? 'Arhivează'
+                : 'Șterge definitiv'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -187,9 +205,14 @@ function DialogSpeaker({
   setDeschis: (v: boolean) => void
   speaker: Speaker | null
 }) {
-  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(
-    (s: StareSpeaker, fd: FormData) => salveazaSpeaker(speaker?.id ?? null, s, fd),
-    initial
+  const {
+    stare,
+    onSubmit,
+    inCurs: seTrimite,
+  } = useActiuneFormular(
+    (s: StareSpeaker, fd: FormData) =>
+      salveazaSpeaker(speaker?.id ?? null, s, fd),
+    initial,
   )
   const [bio, setBio] = useState(speaker?.bio_short ?? '')
   const e = stare.erori ?? {}
@@ -200,13 +223,20 @@ function DialogSpeaker({
     <Dialog open={deschis} onOpenChange={setDeschis}>
       <DialogContent className="max-h-[85svh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{speaker ? 'Editează speakerul' : 'Speaker nou'}</DialogTitle>
+          <DialogTitle>
+            {speaker ? 'Editează speakerul' : 'Speaker nou'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="sp-name">Nume</Label>
-            <Input id="sp-name" name="name" defaultValue={speaker?.name} required />
+            <Input
+              id="sp-name"
+              name="name"
+              defaultValue={speaker?.name}
+              required
+            />
             {e.name && <p className="text-destructive text-sm">{e.name}</p>}
           </div>
 
@@ -225,7 +255,9 @@ function DialogSpeaker({
               <Label htmlFor="sp-bio">Descriere</Label>
               <span
                 className={
-                  bio.length > 250 ? 'text-amber-600 text-xs' : 'text-muted-foreground text-xs'
+                  bio.length > 250
+                    ? 'text-xs text-amber-600'
+                    : 'text-muted-foreground text-xs'
                 }
               >
                 {bio.length}/250
@@ -245,7 +277,7 @@ function DialogSpeaker({
             eticheta="Poză"
             valoare={speaker?.photo_url}
             folder="speakeri"
-            patrat
+            raport={1}
             latura={800}
             hint="Se decupează pătrat din centru — alege o poză în care fața e aproape de mijloc."
           />
@@ -253,20 +285,36 @@ function DialogSpeaker({
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="sp-ig">Instagram</Label>
-              <Input id="sp-ig" name="instagram_url" defaultValue={speaker?.instagram_url ?? ''} />
+              <Input
+                id="sp-ig"
+                name="instagram_url"
+                defaultValue={speaker?.instagram_url ?? ''}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="sp-fb">Facebook</Label>
-              <Input id="sp-fb" name="facebook_url" defaultValue={speaker?.facebook_url ?? ''} />
+              <Input
+                id="sp-fb"
+                name="facebook_url"
+                defaultValue={speaker?.facebook_url ?? ''}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="sp-web">Site</Label>
-              <Input id="sp-web" name="website_url" defaultValue={speaker?.website_url ?? ''} />
+              <Input
+                id="sp-web"
+                name="website_url"
+                defaultValue={speaker?.website_url ?? ''}
+              />
             </div>
           </div>
 
           <div className="flex items-start gap-3 rounded-md border p-3">
-            <Switch id="sp-default" name="is_default" defaultChecked={speaker?.is_default} />
+            <Switch
+              id="sp-default"
+              name="is_default"
+              defaultChecked={speaker?.is_default}
+            />
             <div>
               <Label htmlFor="sp-default">Preselectat la webinar nou</Label>
               <p className="text-muted-foreground text-sm">

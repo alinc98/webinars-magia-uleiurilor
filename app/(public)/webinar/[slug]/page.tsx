@@ -5,15 +5,32 @@ import { notFound } from 'next/navigation'
 
 import { Accordion } from '@/components/brand/accordion'
 import { BaraSticky } from '@/components/brand/bara-sticky'
-import { Card, Fisa, Insigna, Supratitlu, Titlu1, Titlu2, Titlu3 } from '@/components/brand/bucati'
+import {
+  Card,
+  Fisa,
+  Insigna,
+  Supratitlu,
+  Titlu1,
+  Titlu2,
+  Titlu3,
+} from '@/components/brand/bucati'
 import { Ornament } from '@/components/brand/ornament'
 import { Poza } from '@/components/brand/poza'
 import { FormularInscriere } from '@/components/public/formular-inscriere'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { MetaPixel } from '@/components/public/meta-pixel'
 import { getTextConsimtamant } from '@/lib/consimtamant-server'
-import { ETICHETA_FORMAT, formateazaDataOra, numesteEvenimentul } from '@/lib/format'
-import { getSlugsPublicate, getWebinarBySlug, speakeri } from '@/lib/webinars/queries'
+import { openGraph } from '@/lib/seo'
+import {
+  ETICHETA_FORMAT,
+  formateazaDataOra,
+  numesteEvenimentul,
+} from '@/lib/format'
+import {
+  getSlugsPublicate,
+  getWebinarBySlug,
+  speakeri,
+} from '@/lib/webinars/queries'
 
 export const revalidate = 300
 
@@ -23,16 +40,32 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata(
-  props: PageProps<'/webinar/[slug]'>
+  props: PageProps<'/webinar/[slug]'>,
 ): Promise<Metadata> {
   const { slug } = await props.params
   const webinar = await getWebinarBySlug(slug)
   if (!webinar) return {}
 
+  const titlu = webinar.seo_title ?? webinar.title ?? undefined
+  const descriere = webinar.seo_description ?? webinar.subtitle ?? undefined
+  const cale = `/webinar/${slug}`
+
   return {
-    title: webinar.seo_title ?? webinar.title ?? undefined,
-    description: webinar.seo_description ?? webinar.subtitle ?? undefined,
+    title: titlu,
+    description: descriere,
     robots: webinar.listed ? undefined : { index: false, follow: false },
+    // Pagina e servită şi de pe adresa `.vercel.app`, nu doar de pe subdomeniu.
+    // Fără canonical, aceeaşi pagină ar fi indexată de două ori.
+    alternates: { canonical: cale },
+    openGraph: openGraph({
+      type: 'article',
+      url: cale,
+      title: titlu,
+      description: descriere,
+      // Fără copertă nu punem nimic: o imagine generică, aceeaşi la toate
+      // întâlnirile, spune mai puţin decât un link curat.
+      images: webinar.cover_image_url ? [webinar.cover_image_url] : undefined,
+    }),
   }
 }
 
@@ -79,7 +112,9 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
 
   return (
     <div className="bg-brand-bg text-text-body font-body">
-      <MetaPixel pixelId={webinar.meta_pixel_id ?? process.env.NEXT_PUBLIC_META_PIXEL_ID} />
+      <MetaPixel
+        pixelId={webinar.meta_pixel_id ?? process.env.NEXT_PUBLIC_META_PIXEL_ID}
+      />
       <BaraSticky startsAt={webinar.starts_at!} format={format} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
@@ -89,7 +124,12 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           marime={230}
           className="text-primary-800 -bottom-8 -left-8"
         />
-        <Ornament nume="scanteie" marime={26} opacitate={1} className="text-gold-300 top-6 right-6" />
+        <Ornament
+          nume="scanteie"
+          marime={26}
+          opacitate={1}
+          className="text-gold-300 top-6 right-6"
+        />
 
         <div className="relative mx-auto max-w-[var(--container-content)]">
           <Image
@@ -109,12 +149,16 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           <Titlu1 className="mt-3">{webinar.title}</Titlu1>
 
           {webinar.subtitle && (
-            <p className="text-body-lg text-text-muted mt-4 max-w-[46ch]">{webinar.subtitle}</p>
+            <p className="text-body-lg text-text-muted mt-4 max-w-[46ch]">
+              {webinar.subtitle}
+            </p>
           )}
 
           {invitati.length > 0 && (
             <p className="text-body-sm text-sage-700 mt-3 font-medium">
-              {invitati.length === 1 ? 'Cu invitat special: ' : 'Cu invitați speciali: '}
+              {invitati.length === 1
+                ? 'Cu invitat special: '
+                : 'Cu invitați speciali: '}
               {invitati.map((s) => s.name).join(' și ')}
             </p>
           )}
@@ -163,7 +207,11 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
       {/* ── Ce vei învăța ─────────────────────────────────────────────────── */}
       {puncte.length > 0 && (
         <section className="bg-surface relative overflow-hidden px-5 py-12 md:py-16">
-          <Ornament nume="ramura" marime={200} className="text-primary-800 -top-10 -right-6" />
+          <Ornament
+            nume="ramura"
+            marime={200}
+            className="text-primary-800 -top-10 -right-6"
+          />
           <div className="relative mx-auto max-w-[var(--container-content)]">
             <Titlu2>Ce vei învăța</Titlu2>
             <ol className="mt-6 flex flex-col gap-4">
@@ -211,10 +259,14 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
               <div>
                 <Titlu3>{gazda.name}</Titlu3>
                 {gazda.role_title && (
-                  <p className="text-body-sm text-sage-700 mt-1 font-medium">{gazda.role_title}</p>
+                  <p className="text-body-sm text-sage-700 mt-1 font-medium">
+                    {gazda.role_title}
+                  </p>
                 )}
                 {gazda.bio_short && (
-                  <p className="text-body text-text-muted mt-4">{gazda.bio_short}</p>
+                  <p className="text-body text-text-muted mt-4">
+                    {gazda.bio_short}
+                  </p>
                 )}
               </div>
             </div>
@@ -241,9 +293,13 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
                       </span>
                     )}
                     <div className="min-w-0">
-                      <p className="text-text-heading font-semibold">{s.name}</p>
+                      <p className="text-text-heading font-semibold">
+                        {s.name}
+                      </p>
                       {s.role_title && (
-                        <p className="text-caption text-text-muted">{s.role_title}</p>
+                        <p className="text-caption text-text-muted">
+                          {s.role_title}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -317,11 +373,21 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
       )}
 
       {/* ── Formular ──────────────────────────────────────────────────────── */}
-      <section id="inscriere" className="relative scroll-mt-16 overflow-hidden px-5 py-12 md:py-16">
-        <Ornament nume="buchet" marime={220} opacitate={0.12} className="text-primary-800 -right-6 -bottom-6" />
+      <section
+        id="inscriere"
+        className="relative scroll-mt-16 overflow-hidden px-5 py-12 md:py-16"
+      >
+        <Ornament
+          nume="buchet"
+          marime={220}
+          opacitate={0.12}
+          className="text-primary-800 -right-6 -bottom-6"
+        />
 
         <div className="bg-surface-raised border-brand-border shadow-brand-1 rounded-brand-lg relative mx-auto max-w-[var(--container-form)] border p-6 md:p-8">
-          <Titlu3>{webinar.is_full ? 'Locurile s-au epuizat' : 'Îmi rezerv locul'}</Titlu3>
+          <Titlu3>
+            {webinar.is_full ? 'Locurile s-au epuizat' : 'Îmi rezerv locul'}
+          </Titlu3>
 
           {webinar.is_full ? (
             <>
@@ -340,7 +406,8 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
             <>
               <p className="text-body-sm text-text-muted mt-2">
                 Două câmpuri obligatorii. Restul e opțional.
-                {webinar.seats_left !== null && ` Au mai rămas ${webinar.seats_left} locuri.`}
+                {webinar.seats_left !== null &&
+                  ` Au mai rămas ${webinar.seats_left} locuri.`}
               </p>
               <div className="mt-6">
                 <FormularInscriere

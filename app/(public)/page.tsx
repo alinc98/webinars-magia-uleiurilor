@@ -2,21 +2,45 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Card, Insigna, Supratitlu, Titlu1, Titlu2, Titlu3 } from '@/components/brand/bucati'
+import { openGraph } from '@/lib/seo'
+import {
+  Card,
+  Insigna,
+  Supratitlu,
+  Titlu1,
+  Titlu2,
+  Titlu3,
+} from '@/components/brand/bucati'
 import { ButonLink } from '@/components/brand/buton'
 import { Ornament } from '@/components/brand/ornament'
 import { Poza } from '@/components/brand/poza'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
-import { ETICHETA_FORMAT, formateazaData, formateazaDataOra } from '@/lib/format'
+import {
+  ETICHETA_FORMAT,
+  formateazaData,
+  formateazaDataOra,
+} from '@/lib/format'
 import { LINKURI } from '@/lib/linkuri'
-import { getWebinariiHub, speakeri, type WebinarPublic } from '@/lib/webinars/queries'
+import {
+  getWebinariiHub,
+  speakeri,
+  type WebinarPublic,
+} from '@/lib/webinars/queries'
 
 export const revalidate = 300
 
+const DESCRIERE =
+  'Webinarii și ateliere despre uleiuri esențiale, cu Andreea Gligor — aromaterapeut cu 8 ani de practică.'
+
 export const metadata: Metadata = {
   title: 'Întâlniri despre uleiuri esențiale',
-  description:
-    'Webinarii și ateliere despre uleiuri esențiale, cu Andreea Gligor — aromaterapeut cu 8 ani de practică.',
+  description: DESCRIERE,
+  alternates: { canonical: '/' },
+  openGraph: openGraph({
+    url: '/',
+    title: 'Întâlniri despre uleiuri esențiale',
+    description: DESCRIERE,
+  }),
 }
 
 export default async function Page() {
@@ -43,7 +67,11 @@ export default async function Page() {
       </header>
 
       <section className="bg-surface relative overflow-hidden px-5 py-10 md:py-14">
-        <Ornament nume="colt-ornament" marime={220} className="text-primary-800 -bottom-8 -left-8" />
+        <Ornament
+          nume="colt-ornament"
+          marime={220}
+          className="text-primary-800 -bottom-8 -left-8"
+        />
         <div className="relative mx-auto max-w-[var(--container-content)]">
           <Titlu1>Întâlniri despre uleiuri esențiale</Titlu1>
           <p className="text-body-lg text-text-muted mt-4 max-w-[52ch]">
@@ -106,7 +134,10 @@ export default async function Page() {
             </p>
             <ul className="divide-brand-border mt-4 divide-y">
               {arhiva.map((w) => (
-                <li key={w.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3">
+                <li
+                  key={w.id}
+                  className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3"
+                >
                   <span className="text-body">{w.title}</span>
                   <span className="text-caption text-text-muted">
                     {formateazaData(w.starts_at!)}
@@ -173,7 +204,7 @@ function Speakeri({ webinar }: { webinar: WebinarPublic }) {
                 .map((p) => p[0])
                 .join('')}
             </span>
-          )
+          ),
         )}
       </div>
       <span className="text-caption text-text-muted">
@@ -186,14 +217,20 @@ function Speakeri({ webinar }: { webinar: WebinarPublic }) {
 function CardEvidentiat({ webinar }: { webinar: WebinarPublic }) {
   return (
     <article className="bg-surface-raised border-brand-border shadow-brand-2 rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
-      <Ornament nume="ramura" marime={170} className="text-primary-800 -top-6 right-2" />
+      <Ornament
+        nume="ramura"
+        marime={170}
+        className="text-primary-800 -top-6 right-2"
+      />
       <div className="relative">
         <Meta webinar={webinar} />
         <h3 className="font-display text-h2 text-text-heading mt-4 font-semibold text-balance">
           {webinar.title}
         </h3>
         {webinar.subtitle && (
-          <p className="text-body text-text-muted mt-3 max-w-[52ch]">{webinar.subtitle}</p>
+          <p className="text-body text-text-muted mt-3 max-w-[52ch]">
+            {webinar.subtitle}
+          </p>
         )}
         <Speakeri webinar={webinar} />
         {/* Teracota rămâne rezervată paginii individuale: altfel hub-ul ajunge
@@ -216,7 +253,10 @@ function CardGrila({ webinar }: { webinar: WebinarPublic }) {
     <Card className="hover:shadow-brand-2 transition-shadow">
       <Meta webinar={webinar} />
       <h3 className="font-display text-h4 text-text-heading mt-3 font-semibold">
-        <Link href={`/webinar/${webinar.slug}`} className="after:absolute after:inset-0">
+        <Link
+          href={`/webinar/${webinar.slug}`}
+          className="after:absolute after:inset-0"
+        >
           {webinar.title}
         </Link>
       </h3>

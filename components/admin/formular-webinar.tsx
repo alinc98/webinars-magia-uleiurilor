@@ -502,8 +502,10 @@ export function FormularWebinar({
           eticheta="Imagine de copertă"
           valoare={valori.cover_image_url}
           folder="coperti"
+          raport={630 / 1200}
+          tip="image/jpeg"
           latura={1200}
-          hint="Orizontală, folosită în listă și la partajarea pe rețele."
+          hint="Se decupează orizontal din centru. Apare când cineva dă linkul mai departe, pe Facebook sau WhatsApp."
         />
       </Sectiune>
 

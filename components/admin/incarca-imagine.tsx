@@ -9,17 +9,25 @@ import { Label } from '@/components/ui/label'
 /**
  * Redimensionează și decupează în browser, înainte de încărcare.
  *
- * `patrat` decupează din centru la raport 1:1 — pozele de speaker apar în
- * cercuri și în carduri pătrate, iar o poză verticală tăiată de CSS ajunge cu
- * bărbia sau fruntea în afara cadrului.
+ * `raport` e înălţimea împărţită la lăţime, iar decuparea se face din centru.
+ * Pozele de speaker cer 1:1, fiindcă apar în cercuri şi în carduri pătrate: o
+ * poză verticală tăiată de CSS ajunge cu bărbia sau fruntea în afara
+ * cadrului. Copertele cer 1.91:1, formatul pe care îl aşteaptă previzualizările
+ * de link. Fără `raport`, se păstrează proporţia originalului.
  *
- * Ieșirea e WebP: planul gratuit n-are transformări de imagine în Supabase,
- * iar optimizatorul Vercel are un plafon lunar. Aici le ocolim pe amândouă
- * (PLAN.md §2.4).
+ * Ieșirea e WebP acolo unde o afişăm noi: planul gratuit n-are transformări de
+ * imagine în Supabase, iar optimizatorul Vercel are un plafon lunar, deci le
+ * ocolim pe amândouă (PLAN.md §2.4). Copertele fac excepţie şi ies JPEG —
+ * imaginea aia n-o citeşte browserul cuiva, ci crawlerele de Facebook,
+ * WhatsApp şi LinkedIn, care tratează WebP inegal.
  */
 async function pregatesteImaginea(
   fisier: File,
-  { latura, patrat }: { latura: number; patrat: boolean }
+  {
+    latura,
+    raport,
+    tip,
+  }: { latura: number; raport?: number; tip: 'image/webp' | 'image/jpeg' },
 ): Promise<File> {
   const bitmap = await createImageBitmap(fisier)
 
@@ -28,17 +36,20 @@ async function pregatesteImaginea(
   let sw = bitmap.width
   let sh = bitmap.height
 
-  if (patrat) {
-    const l = Math.min(bitmap.width, bitmap.height)
-    sx = Math.round((bitmap.width - l) / 2)
-    sy = Math.round((bitmap.height - l) / 2)
-    sw = l
-    sh = l
+  if (raport) {
+    // Tăiem latura care prisoseşte faţă de raportul cerut, nu pe amândouă.
+    if (sh / sw > raport) {
+      sh = Math.round(sw * raport)
+      sy = Math.round((bitmap.height - sh) / 2)
+    } else {
+      sw = Math.round(sh / raport)
+      sx = Math.round((bitmap.width - sw) / 2)
+    }
   }
 
-  const raport = patrat ? 1 : sh / sw
+  const raportFinal = sh / sw
   const latimeFinala = Math.min(latura, sw)
-  const inaltimeFinala = Math.round(latimeFinala * raport)
+  const inaltimeFinala = Math.round(latimeFinala * raportFinal)
 
   const panza = document.createElement('canvas')
   panza.width = latimeFinala
@@ -52,11 +63,12 @@ async function pregatesteImaginea(
   bitmap.close()
 
   const blob = await new Promise<Blob | null>((rezolva) =>
-    panza.toBlob(rezolva, 'image/webp', 0.85)
+    panza.toBlob(rezolva, tip, 0.85),
   )
   if (!blob) throw new Error('Nu am putut converti imaginea.')
 
-  return new File([blob], 'imagine.webp', { type: 'image/webp' })
+  const extensie = tip === 'image/jpeg' ? 'jpg' : 'webp'
+  return new File([blob], `imagine.${extensie}`, { type: tip })
 }
 
 export function IncarcaImagine({
@@ -64,7 +76,8 @@ export function IncarcaImagine({
   eticheta,
   valoare,
   folder,
-  patrat = false,
+  raport,
+  tip = 'image/webp',
   latura = 1200,
   hint,
 }: {
@@ -72,10 +85,13 @@ export function IncarcaImagine({
   eticheta: string
   valoare?: string | null
   folder: string
-  patrat?: boolean
+  raport?: number
+  tip?: 'image/webp' | 'image/jpeg'
   latura?: number
   hint?: string
 }) {
+  // Doar pentru previzualizare: un chip pătrat lângă unul lat arată strâmb.
+  const patrat = raport === 1
   const [url, setUrl] = useState(valoare ?? '')
   const [inCurs, setInCurs] = useState(false)
   const [eroare, setEroare] = useState<string | null>(null)
@@ -85,13 +101,16 @@ export function IncarcaImagine({
     setEroare(null)
     setInCurs(true)
     try {
-      const pregatit = await pregatesteImaginea(fisier, { latura, patrat })
+      const pregatit = await pregatesteImaginea(fisier, { latura, raport, tip })
 
       const formData = new FormData()
       formData.append('fisier', pregatit)
       formData.append('folder', folder)
 
-      const raspuns = await fetch('/api/upload', { method: 'POST', body: formData })
+      const raspuns = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
       const rezultat = await raspuns.json()
 
       if (!raspuns.ok || !rezultat.ok) {
@@ -100,7 +119,9 @@ export function IncarcaImagine({
       }
       setUrl(rezultat.url)
     } catch (e) {
-      setEroare(e instanceof Error ? e.message : 'Nu am putut procesa imaginea.')
+      setEroare(
+        e instanceof Error ? e.message : 'Nu am putut procesa imaginea.',
+      )
     } finally {
       setInCurs(false)
     }
@@ -160,12 +181,25 @@ export function IncarcaImagine({
               disabled={inCurs}
               onClick={() => input.current?.click()}
             >
-              {inCurs ? <Loader2 className="size-4 animate-spin" /> : <ImageUp className="size-4" />}
-              {inCurs ? 'Se încarcă…' : url ? 'Schimbă imaginea' : 'Alege o imagine'}
+              {inCurs ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ImageUp className="size-4" />
+              )}
+              {inCurs
+                ? 'Se încarcă…'
+                : url
+                  ? 'Schimbă imaginea'
+                  : 'Alege o imagine'}
             </Button>
 
             {url && !inCurs && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => setUrl('')}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setUrl('')}
+              >
                 <X className="size-4" />
                 Scoate
               </Button>

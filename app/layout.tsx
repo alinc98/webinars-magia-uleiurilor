@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter } from 'next/font/google'
+import { env } from '@/lib/env'
+
 import './globals.css'
 
 // `latin-ext` nu e opțional: fără el, ă â î ș ț lipsesc din fișierul de font
@@ -17,12 +19,17 @@ const fraunces = Fraunces({
 })
 
 export const metadata: Metadata = {
+  // Fără `metadataBase`, Next scrie adrese relative în `og:url` şi `canonical`,
+  // iar crawlerele le ignoră. Vine din aceeaşi variabilă ca linkurile din
+  // emailuri, ca să nu existe două adevăruri despre unde stă site-ul.
+  metadataBase: new URL(env.siteUrl()),
   title: {
     default: 'Webinarii · Magia Uleiurilor Esențiale',
     template: '%s · Magia Uleiurilor Esențiale',
   },
   description:
     'Întâlniri online despre uleiuri esențiale, cu Andreea Gligor — aromaterapeut.',
+  twitter: { card: 'summary_large_image' },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
