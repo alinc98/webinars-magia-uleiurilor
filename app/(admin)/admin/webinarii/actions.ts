@@ -25,6 +25,24 @@ async function ceruteDrepturi() {
   return utilizator
 }
 
+/**
+ * Întrebările vin ca două liste paralele, `faq_q` şi `faq_a`.
+ *
+ * `Object.fromEntries` păstrează doar ultima valoare a unei chei repetate,
+ * deci perechile trebuie citite cu `getAll`, ca speakerii. Rândurile goale pe
+ * ambele părţi se aruncă aici: cineva care apasă „Adaugă întrebare" şi se
+ * răzgândeşte nu trebuie să primească o eroare pentru un rând pe care nu l-a
+ * atins. Cele completate pe jumătate rămân, ca schema să le semnaleze.
+ */
+function citesteFaq(formData: FormData) {
+  const intrebari = formData.getAll('faq_q').map(String)
+  const raspunsuri = formData.getAll('faq_a').map(String)
+
+  return intrebari
+    .map((q, i) => ({ q, a: raspunsuri[i] ?? '' }))
+    .filter((rand) => rand.q.trim() || rand.a.trim())
+}
+
 function citesteFormular(formData: FormData) {
   const brut = Object.fromEntries(formData.entries())
   return webinarSchema.safeParse({
@@ -33,6 +51,7 @@ function citesteFormular(formData: FormData) {
     is_featured: formData.get('is_featured') === 'on',
     replay_public: formData.get('replay_public') === 'on',
     speaker_ids: formData.getAll('speaker_ids').filter(Boolean) as string[],
+    faq: citesteFaq(formData),
   })
 }
 
@@ -55,13 +74,17 @@ function reimprospateaza(slug: string, slugVechi?: string) {
 export async function salveazaWebinar(
   id: string | null,
   _stare: StareFormular,
-  formData: FormData
+  formData: FormData,
 ): Promise<StareFormular> {
   await ceruteDrepturi()
 
   const rezultat = citesteFormular(formData)
   if (!rezultat.success) {
-    return { ok: false, mesaj: 'Verifică datele completate.', erori: erori(rezultat.error.issues) }
+    return {
+      ok: false,
+      mesaj: 'Verifică datele completate.',
+      erori: erori(rezultat.error.issues),
+    }
   }
 
   const { speaker_ids, gazda_id, ...date } = rezultat.data
@@ -95,10 +118,17 @@ export async function salveazaWebinar(
       .maybeSingle()
     slugVechi = existent?.slug
 
-    const { error } = await supabase.from('webinars').update(valori).eq('id', id)
+    const { error } = await supabase
+      .from('webinars')
+      .update(valori)
+      .eq('id', id)
     if (error) return { ok: false, mesaj: traduEroare(error.message) }
   } else {
-    const { data, error } = await supabase.from('webinars').insert(valori).select('id').single()
+    const { data, error } = await supabase
+      .from('webinars')
+      .insert(valori)
+      .select('id')
+      .single()
     if (error) return { ok: false, mesaj: traduEroare(error.message) }
     webinarId = data.id
   }
@@ -116,7 +146,7 @@ export async function salveazaWebinar(
 async function sincronizeazaSpeakeri(
   webinarId: string,
   speakerIds: string[],
-  gazdaId?: string
+  gazdaId?: string,
 ) {
   const supabase = createAdminClient()
 
@@ -128,9 +158,10 @@ async function sincronizeazaSpeakeri(
     speakerIds.map((speakerId, index) => ({
       webinar_id: webinarId,
       speaker_id: speakerId,
-      role_label: (speakerId === gazdaId ? 'gazda' : 'invitat') as 'gazda' | 'invitat',
+      role_label: (speakerId === gazdaId ? 'gazda' : 'invitat') as
+        'gazda' | 'invitat',
       sort_order: index + 1,
-    }))
+    })),
   )
 }
 
@@ -139,7 +170,11 @@ export async function dupliceazaWebinar(id: string) {
   await ceruteDrepturi()
   const supabase = createAdminClient()
 
-  const { data: sursa } = await supabase.from('webinars').select('*').eq('id', id).maybeSingle()
+  const { data: sursa } = await supabase
+    .from('webinars')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
   if (!sursa) return
 
   const { id: _id, created_at, updated_at, slug, ...restul } = sursa

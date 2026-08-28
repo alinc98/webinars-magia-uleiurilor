@@ -30,6 +30,7 @@ export type ValoriWebinar = {
   for_whom?: string[]
   bonus_title?: string | null
   bonus_description?: string | null
+  faq?: { q: string; a: string }[]
   starts_at?: string
   duration_min?: number
   format?: 'online' | 'fizic' | 'hibrid'
@@ -72,25 +73,31 @@ export function FormularWebinar({
   valori: ValoriWebinar
   speakeri: SpeakerOptiune[]
 }) {
-  const { stare, onSubmit, inCurs: seTrimite } = useActiuneFormular(actiune, initial)
+  const {
+    stare,
+    onSubmit,
+    inCurs: seTrimite,
+  } = useActiuneFormular(actiune, initial)
   const idFormular = useId()
 
   const [format, setFormat] = useState(valori.format ?? 'online')
   useSincronizat(valori.format ?? 'online', setFormat)
   const [slug, setSlug] = useState(valori.slug ?? '')
   const [slugAtins, setSlugAtins] = useState(Boolean(valori.slug))
-  const [replayPublic, setReplayPublic] = useState(valori.replay_public ?? false)
+  const [replayPublic, setReplayPublic] = useState(
+    valori.replay_public ?? false,
+  )
   useSincronizat(valori.replay_public ?? false, setReplayPublic)
 
   const implicit = speakeri.find((s) => s.is_default)
   const [alesi, setAlesi] = useState<string[]>(
-    valori.speaker_ids ?? (implicit && !valori.id ? [implicit.id] : [])
+    valori.speaker_ids ?? (implicit && !valori.id ? [implicit.id] : []),
   )
   const [gazda, setGazda] = useState<string | undefined>(
-    valori.gazda_id ?? (implicit && !valori.id ? implicit.id : undefined)
+    valori.gazda_id ?? (implicit && !valori.id ? implicit.id : undefined),
   )
   useSincronizat((valori.speaker_ids ?? []).join(','), (lista) =>
-    setAlesi(lista ? lista.split(',') : [])
+    setAlesi(lista ? lista.split(',') : []),
   )
   useSincronizat(valori.gazda_id, setGazda)
 
@@ -110,7 +117,11 @@ export function FormularWebinar({
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8 px-5 py-6 md:px-8">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="flex flex-col gap-8 px-5 py-6 md:px-8"
+    >
       <Sectiune titlu="Informații de bază">
         <Camp eticheta="Titlu" id={`${idFormular}-title`} eroare={e.title}>
           <Input
@@ -142,11 +153,23 @@ export function FormularWebinar({
           />
         </Camp>
 
-        <Camp eticheta="Subtitlu" id={`${idFormular}-subtitle`} eroare={e.subtitle}>
-          <Input id={`${idFormular}-subtitle`} name="subtitle" defaultValue={valori.subtitle ?? ''} />
+        <Camp
+          eticheta="Subtitlu"
+          id={`${idFormular}-subtitle`}
+          eroare={e.subtitle}
+        >
+          <Input
+            id={`${idFormular}-subtitle`}
+            name="subtitle"
+            defaultValue={valori.subtitle ?? ''}
+          />
         </Camp>
 
-        <Camp eticheta="Descriere" id={`${idFormular}-description`} eroare={e.description}>
+        <Camp
+          eticheta="Descriere"
+          id={`${idFormular}-description`}
+          eroare={e.description}
+        >
           <Textarea
             id={`${idFormular}-description`}
             name="description"
@@ -170,7 +193,11 @@ export function FormularWebinar({
           />
         </Camp>
 
-        <Camp eticheta="Pentru cine e" id={`${idFormular}-forwhom`} hint="Un punct pe rând.">
+        <Camp
+          eticheta="Pentru cine e"
+          id={`${idFormular}-forwhom`}
+          hint="Un punct pe rând."
+        >
           <Textarea
             id={`${idFormular}-forwhom`}
             name="for_whom"
@@ -181,7 +208,11 @@ export function FormularWebinar({
 
         <div className="grid gap-4 md:grid-cols-2">
           <Camp eticheta="Titlul bonusului" id={`${idFormular}-bonus`}>
-            <Input id={`${idFormular}-bonus`} name="bonus_title" defaultValue={valori.bonus_title ?? ''} />
+            <Input
+              id={`${idFormular}-bonus`}
+              name="bonus_title"
+              defaultValue={valori.bonus_title ?? ''}
+            />
           </Camp>
           <Camp eticheta="Descrierea bonusului" id={`${idFormular}-bonusd`}>
             <Input
@@ -191,9 +222,14 @@ export function FormularWebinar({
             />
           </Camp>
         </div>
+
+        <EditorFaq initiale={valori.faq ?? []} erori={e} />
       </Sectiune>
 
-      <Sectiune titlu="Speakeri" descriere="Cel mult trei. Gazda apare prima pe pagină.">
+      <Sectiune
+        titlu="Speakeri"
+        descriere="Cel mult trei. Gazda apare prima pe pagină."
+      >
         {speakeri.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             Nu există niciun speaker încă. Adaugă unul din secțiunea Speakeri.
@@ -203,17 +239,26 @@ export function FormularWebinar({
             {speakeri.map((s) => {
               const bifat = alesi.includes(s.id)
               return (
-                <li key={s.id} className="flex items-center gap-3 rounded-md border p-3">
+                <li
+                  key={s.id}
+                  className="flex items-center gap-3 rounded-md border p-3"
+                >
                   <Checkbox
                     id={`sp-${s.id}`}
                     checked={bifat}
                     disabled={!bifat && alesi.length >= 3}
                     onCheckedChange={(v) => comutaSpeaker(s.id, v === true)}
                   />
-                  <label htmlFor={`sp-${s.id}`} className="min-w-0 flex-1 text-sm">
+                  <label
+                    htmlFor={`sp-${s.id}`}
+                    className="min-w-0 flex-1 text-sm"
+                  >
                     <span className="font-medium">{s.name}</span>
                     {s.role_title && (
-                      <span className="text-muted-foreground"> · {s.role_title}</span>
+                      <span className="text-muted-foreground">
+                        {' '}
+                        · {s.role_title}
+                      </span>
                     )}
                   </label>
                   {bifat && (
@@ -228,18 +273,26 @@ export function FormularWebinar({
                       gazdă
                     </label>
                   )}
-                  {bifat && <input type="hidden" name="speaker_ids" value={s.id} />}
+                  {bifat && (
+                    <input type="hidden" name="speaker_ids" value={s.id} />
+                  )}
                 </li>
               )
             })}
           </ul>
         )}
-        {e.speaker_ids && <p className="text-destructive text-sm">{e.speaker_ids}</p>}
+        {e.speaker_ids && (
+          <p className="text-destructive text-sm">{e.speaker_ids}</p>
+        )}
       </Sectiune>
 
       <Sectiune titlu="Programare">
         <div className="grid gap-4 md:grid-cols-3">
-          <Camp eticheta="Data și ora" id={`${idFormular}-start`} eroare={e.starts_at}>
+          <Camp
+            eticheta="Data și ora"
+            id={`${idFormular}-start`}
+            eroare={e.starts_at}
+          >
             <Input
               id={`${idFormular}-start`}
               name="starts_at"
@@ -248,7 +301,11 @@ export function FormularWebinar({
               required
             />
           </Camp>
-          <Camp eticheta="Durată (minute)" id={`${idFormular}-durata`} eroare={e.duration_min}>
+          <Camp
+            eticheta="Durată (minute)"
+            id={`${idFormular}-durata`}
+            eroare={e.duration_min}
+          >
             <Input
               id={`${idFormular}-durata`}
               name="duration_min"
@@ -286,7 +343,11 @@ export function FormularWebinar({
                   checked={format === v}
                   onChange={() => setFormat(v)}
                 />
-                {v === 'online' ? 'Online' : v === 'fizic' ? 'La fața locului' : 'Hibrid'}
+                {v === 'online'
+                  ? 'Online'
+                  : v === 'fizic'
+                    ? 'La fața locului'
+                    : 'Hibrid'}
               </label>
             ))}
           </div>
@@ -300,26 +361,58 @@ export function FormularWebinar({
             eroare={e.join_url}
             hint="Zoom, Meet sau altceva. Necesar la publicare."
           >
-            <Input id={`${idFormular}-join`} name="join_url" defaultValue={valori.join_url ?? ''} />
+            <Input
+              id={`${idFormular}-join`}
+              name="join_url"
+              defaultValue={valori.join_url ?? ''}
+            />
           </Camp>
         )}
 
         {laFataLocului && (
           <div className="grid gap-4 md:grid-cols-2">
-            <Camp eticheta="Denumirea locației" id={`${idFormular}-venue`} eroare={e.venue_name}>
-              <Input id={`${idFormular}-venue`} name="venue_name" defaultValue={valori.venue_name ?? ''} />
+            <Camp
+              eticheta="Denumirea locației"
+              id={`${idFormular}-venue`}
+              eroare={e.venue_name}
+            >
+              <Input
+                id={`${idFormular}-venue`}
+                name="venue_name"
+                defaultValue={valori.venue_name ?? ''}
+              />
             </Camp>
-            <Camp eticheta="Adresă" id={`${idFormular}-addr`} eroare={e.address}>
-              <Input id={`${idFormular}-addr`} name="address" defaultValue={valori.address ?? ''} />
+            <Camp
+              eticheta="Adresă"
+              id={`${idFormular}-addr`}
+              eroare={e.address}
+            >
+              <Input
+                id={`${idFormular}-addr`}
+                name="address"
+                defaultValue={valori.address ?? ''}
+              />
             </Camp>
             <Camp eticheta="Oraș" id={`${idFormular}-city`} eroare={e.city}>
-              <Input id={`${idFormular}-city`} name="city" defaultValue={valori.city ?? ''} />
+              <Input
+                id={`${idFormular}-city`}
+                name="city"
+                defaultValue={valori.city ?? ''}
+              />
             </Camp>
             <Camp eticheta="Județ" id={`${idFormular}-county`}>
-              <Input id={`${idFormular}-county`} name="county" defaultValue={valori.county ?? ''} />
+              <Input
+                id={`${idFormular}-county`}
+                name="county"
+                defaultValue={valori.county ?? ''}
+              />
             </Camp>
             <Camp eticheta="Link de hartă" id={`${idFormular}-map`}>
-              <Input id={`${idFormular}-map`} name="map_url" defaultValue={valori.map_url ?? ''} />
+              <Input
+                id={`${idFormular}-map`}
+                name="map_url"
+                defaultValue={valori.map_url ?? ''}
+              />
             </Camp>
             <Camp
               eticheta="Note practice"
@@ -374,7 +467,11 @@ export function FormularWebinar({
         />
 
         {replayPublic && (
-          <Camp eticheta="Link înregistrare" id={`${idFormular}-rec`} eroare={e.recording_url}>
+          <Camp
+            eticheta="Link înregistrare"
+            id={`${idFormular}-rec`}
+            eroare={e.recording_url}
+          >
             <Input
               id={`${idFormular}-rec`}
               name="recording_url"
@@ -386,7 +483,11 @@ export function FormularWebinar({
 
       <Sectiune titlu="SEO">
         <Camp eticheta="Titlu SEO" id={`${idFormular}-seot`}>
-          <Input id={`${idFormular}-seot`} name="seo_title" defaultValue={valori.seo_title ?? ''} />
+          <Input
+            id={`${idFormular}-seot`}
+            name="seo_title"
+            defaultValue={valori.seo_title ?? ''}
+          />
         </Camp>
         <Camp eticheta="Descriere SEO" id={`${idFormular}-seod`}>
           <Textarea
@@ -406,13 +507,17 @@ export function FormularWebinar({
         />
       </Sectiune>
 
-      <div className="bg-background sticky bottom-0 -mx-5 flex flex-wrap items-center gap-3 border-t px-5 py-3 md:-mx-8 md:bottom-0 md:px-8">
+      <div className="bg-background sticky bottom-0 -mx-5 flex flex-wrap items-center gap-3 border-t px-5 py-3 md:bottom-0 md:-mx-8 md:px-8">
         <Button type="submit" disabled={seTrimite}>
           {seTrimite ? 'Se salvează…' : 'Salvează'}
         </Button>
         {valori.slug && (
           <Button variant="outline" asChild>
-            <a href={`/webinar/${valori.slug}`} target="_blank" rel="noreferrer">
+            <a
+              href={`/webinar/${valori.slug}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               Previzualizează
             </a>
           </Button>
@@ -420,7 +525,9 @@ export function FormularWebinar({
         {stare.mesaj && (
           <p
             role="status"
-            className={stare.ok ? 'text-sm text-emerald-600' : 'text-destructive text-sm'}
+            className={
+              stare.ok ? 'text-sm text-emerald-600' : 'text-destructive text-sm'
+            }
           >
             {stare.mesaj}
           </p>
@@ -443,10 +550,118 @@ function Sectiune({
     <section className="flex flex-col gap-4">
       <div>
         <h2 className="font-medium">{titlu}</h2>
-        {descriere && <p className="text-muted-foreground text-sm">{descriere}</p>}
+        {descriere && (
+          <p className="text-muted-foreground text-sm">{descriere}</p>
+        )}
       </div>
       {children}
     </section>
+  )
+}
+
+/**
+ * Întrebările frecvente de pe pagina webinarului.
+ *
+ * Perechile pleacă spre server ca două liste paralele, `faq_q` şi `faq_a`,
+ * împerecheate după poziţie. Nu numerotăm câmpurile: la ştergerea unui rând
+ * din mijloc, indicii ar trebui recalculaţi, iar `getAll` păstrează oricum
+ * ordinea din document.
+ */
+function EditorFaq({
+  initiale,
+  erori,
+}: {
+  initiale: { q: string; a: string }[]
+  erori: Record<string, string>
+}) {
+  const [randuri, setRanduri] = useState(initiale)
+  useSincronizat(JSON.stringify(initiale), (text) =>
+    setRanduri(JSON.parse(text)),
+  )
+
+  function schimba(i: number, camp: 'q' | 'a', valoare: string) {
+    setRanduri((curent) =>
+      curent.map((rand, j) => (j === i ? { ...rand, [camp]: valoare } : rand)),
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        {/* Nu `Label`: e titlul unui grup, nu eticheta unui singur control.
+            Câmpurile dinăuntru îşi poartă propriul `aria-label`. */}
+        <p className="text-sm font-medium">Întrebări frecvente</p>
+        <p className="text-muted-foreground text-xs">
+          Apar ca acordeon pe pagina webinarului. Prima e deschisă din start.
+        </p>
+      </div>
+
+      {randuri.length === 0 && (
+        <p className="text-muted-foreground text-sm">
+          Nicio întrebare. Pagina sare peste secţiune.
+        </p>
+      )}
+
+      {randuri.map((rand, i) => (
+        <div
+          key={i}
+          className="border-brand-border flex flex-col gap-2 rounded-md border p-3"
+        >
+          <div className="flex items-center gap-2">
+            <Input
+              aria-label={`Întrebarea ${i + 1}`}
+              name="faq_q"
+              value={rand.q}
+              placeholder="Întrebarea"
+              onChange={(ev) => schimba(i, 'q', ev.target.value)}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label={`Şterge întrebarea ${i + 1}`}
+              onClick={() =>
+                setRanduri((curent) => curent.filter((_, j) => j !== i))
+              }
+            >
+              Şterge
+            </Button>
+          </div>
+
+          <Textarea
+            aria-label={`Răspunsul ${i + 1}`}
+            name="faq_a"
+            rows={2}
+            value={rand.a}
+            placeholder="Răspunsul"
+            onChange={(ev) => schimba(i, 'a', ev.target.value)}
+          />
+
+          {(erori[`faq.${i}.q`] || erori[`faq.${i}.a`]) && (
+            <p className="text-destructive text-sm" role="alert">
+              {erori[`faq.${i}.q`] ?? erori[`faq.${i}.a`]}
+            </p>
+          )}
+        </div>
+      ))}
+
+      {erori.faq && (
+        <p className="text-destructive text-sm" role="alert">
+          {erori.faq}
+        </p>
+      )}
+
+      <div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setRanduri((curent) => [...curent, { q: '', a: '' }])}
+        >
+          Adaugă întrebare
+        </Button>
+      </div>
+    </div>
   )
 }
 
@@ -467,7 +682,9 @@ function Camp({
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{eticheta}</Label>
       {children}
-      {hint && !eroare && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {hint && !eroare && (
+        <p className="text-muted-foreground text-xs">{hint}</p>
+      )}
       {eroare && (
         <p className="text-destructive text-sm" role="alert">
           {eroare}

@@ -14,26 +14,30 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
   const { id } = await props.params
   const supabase = createAdminClient()
 
-  const [{ data: webinar }, { data: speakeri }, { data: legaturi }, { count: inscrisi }] =
-    await Promise.all([
-      supabase.from('webinars').select('*').eq('id', id).maybeSingle(),
-      supabase
-        .from('speakers')
-        .select('id, name, role_title, is_default')
-        .is('archived_at', null)
-        .order('is_default', { ascending: false })
-        .order('name'),
-      supabase
-        .from('webinar_speakers')
-        .select('speaker_id, role_label, sort_order')
-        .eq('webinar_id', id)
-        .order('sort_order'),
-      supabase
-        .from('registrations')
-        .select('id', { count: 'exact', head: true })
-        .eq('webinar_id', id)
-        .eq('kind', 'live'),
-    ])
+  const [
+    { data: webinar },
+    { data: speakeri },
+    { data: legaturi },
+    { count: inscrisi },
+  ] = await Promise.all([
+    supabase.from('webinars').select('*').eq('id', id).maybeSingle(),
+    supabase
+      .from('speakers')
+      .select('id, name, role_title, is_default')
+      .is('archived_at', null)
+      .order('is_default', { ascending: false })
+      .order('name'),
+    supabase
+      .from('webinar_speakers')
+      .select('speaker_id, role_label, sort_order')
+      .eq('webinar_id', id)
+      .order('sort_order'),
+    supabase
+      .from('registrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('webinar_id', id)
+      .eq('kind', 'live'),
+  ])
 
   if (!webinar) notFound()
 
@@ -61,6 +65,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
           for_whom: (webinar.for_whom as string[]) ?? [],
           bonus_title: webinar.bonus_title,
           bonus_description: webinar.bonus_description,
+          faq: (webinar.faq as { q: string; a: string }[] | null) ?? [],
           starts_at: webinar.starts_at,
           duration_min: webinar.duration_min,
           format: webinar.format,
@@ -81,7 +86,8 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
           seo_title: webinar.seo_title,
           seo_description: webinar.seo_description,
           speaker_ids: (legaturi ?? []).map((l) => l.speaker_id),
-          gazda_id: (legaturi ?? []).find((l) => l.role_label === 'gazda')?.speaker_id,
+          gazda_id: (legaturi ?? []).find((l) => l.role_label === 'gazda')
+            ?.speaker_id,
         }}
         speakeri={speakeri ?? []}
       />
