@@ -14,11 +14,22 @@ jobs:
   dump:
     runs-on: ubuntu-latest
     steps:
+      # Runnerul vine cu clientul 16, iar `pg_dump` refuză un server mai nou
+      # decât el: „aborting because of server version mismatch". Depozitul
+      # implicit al Ubuntu n-are 17, deci îl adăugăm pe cel oficial Postgres.
+      #
+      # Fără linie de rezervă, dinadins: varianta dinainte cădea pe
+      # `postgresql-client` generic, instala 16 şi eşua abia la dump, cu un
+      # mesaj din care nu se vedea că vina e a pasului de instalare.
       - name: Instalează clientul Postgres 17
         run: |
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client-17 \
-            || sudo apt-get install -y postgresql-client
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
 
       - name: pg_dump
         env:
