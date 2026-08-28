@@ -10,7 +10,21 @@ import { getAdminUser } from '@/lib/supabase/auth'
 export type StareSetari = { ok: boolean; mesaj?: string }
 
 async function ceruteDrepturi() {
-  if (!(await getAdminUser())) redirect('/login')
+  const utilizator = await getAdminUser()
+  if (!utilizator) redirect('/login')
+  return utilizator
+}
+
+/**
+ * Doar proprietarii umblă la lista de acces.
+ *
+ * Interfața ascunde deja butoanele de la editori, dar o Server Action e un
+ * endpoint: poate fi apelată direct, fără să treacă vreodată prin interfață.
+ */
+async function ceruteProprietar() {
+  const utilizator = await ceruteDrepturi()
+  if (utilizator.role !== 'owner') return null
+  return utilizator
 }
 
 const consimtamantSchema = z.object({
@@ -90,4 +104,116 @@ export async function salveazaRetentie(
 
   revalidatePath('/admin/setari')
   return { ok: true, mesaj: 'Salvat.' }
+}
+
+
+const adminSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email('Verifică adresa de email.')),
+  name: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  role: z.enum(['owner', 'editor']),
+})
+
+/**
+ * Adaugă o adresă pe lista albă.
+ *
+ * Nu e nevoie de invitație sau de parolă: contul Supabase se creează singur la
+ * prima autentificare. Lista albă e singura care decide cine are voie, iar ea
+ * se verifică și înainte de trimiterea linkului, și la fiecare randare a
+ * panoului.
+ */
+export async function adaugaAdmin(
+  _stare: StareSetari,
+  formData: FormData
+): Promise<StareSetari> {
+  if (!(await ceruteProprietar())) {
+    return { ok: false, mesaj: 'Doar un proprietar poate schimba lista de acces.' }
+  }
+
+  const rezultat = adminSchema.safeParse(Object.fromEntries(formData.entries()))
+  if (!rezultat.success) {
+    return { ok: false, mesaj: rezultat.error.issues[0]?.message }
+  }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('admin_users').insert(rezultat.data)
+
+  if (error) {
+    if (error.message.includes('duplicate key')) {
+      return { ok: false, mesaj: 'Adresa are deja acces.' }
+    }
+    console.error('Adăugarea adminului a eșuat:', error.message)
+    return { ok: false, mesaj: 'Nu am putut adăuga adresa.' }
+  }
+
+  revalidatePath('/admin/setari')
+  return { ok: true, mesaj: `${rezultat.data.email} are acum acces.` }
+}
+
+/**
+ * Scoate o adresă de pe lista albă.
+ *
+ * Două lucruri nu sunt permise, ca panoul să nu ajungă inaccesibil: să te scoți
+ * pe tine însuți și să dispară ultimul proprietar.
+ */
+export async function stergeAdmin(id: string): Promise<StareSetari> {
+  const utilizator = await ceruteProprietar()
+  if (!utilizator) {
+    return { ok: false, mesaj: 'Doar un proprietar poate schimba lista de acces.' }
+  }
+
+  if (utilizator.id === id) {
+    return { ok: false, mesaj: 'Nu te poți scoate pe tine din listă.' }
+  }
+
+  const supabase = createAdminClient()
+  const { data: tinta } = await supabase
+    .from('admin_users')
+    .select('email, role')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (!tinta) return { ok: false, mesaj: 'Adresa nu mai există.' }
+
+  if (tinta.role === 'owner') {
+    const { count } = await supabase
+      .from('admin_users')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'owner')
+
+    if ((count ?? 0) <= 1) {
+      return {
+        ok: false,
+        mesaj: 'E singurul proprietar. Fă pe altcineva proprietar înainte.',
+      }
+    }
+  }
+
+  const { error } = await supabase.from('admin_users').delete().eq('id', id)
+  if (error) return { ok: false, mesaj: 'Nu am putut scoate adresa.' }
+
+  revalidatePath('/admin/setari')
+  return { ok: true, mesaj: `${tinta.email} nu mai are acces.` }
+}
+
+export async function schimbaRolAdmin(id: string, rol: 'owner' | 'editor'): Promise<StareSetari> {
+  const utilizator = await ceruteProprietar()
+  if (!utilizator) {
+    return { ok: false, mesaj: 'Doar un proprietar poate schimba rolurile.' }
+  }
+
+  if (utilizator.id === id && rol === 'editor') {
+    return { ok: false, mesaj: 'Nu-ți poți scădea singur rolul.' }
+  }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('admin_users').update({ role: rol }).eq('id', id)
+  if (error) return { ok: false, mesaj: 'Nu am putut schimba rolul.' }
+
+  revalidatePath('/admin/setari')
+  return { ok: true }
 }

@@ -1,12 +1,14 @@
 import { Antet } from '@/components/admin/antet'
 import { formateazaDataOra } from '@/lib/format'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminUser } from '@/lib/supabase/auth'
 
-import { FormularConsimtamant, FormularRetentie } from './formulare'
+import { FormularConsimtamant, FormularRetentie, GestiuneAdmini } from './formulare'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
+  const eu = await getAdminUser()
   const supabase = createAdminClient()
 
   const [{ data: utilizatori }, { data: consimtamant }, { data: setari }, { data: istoric }] =
@@ -28,22 +30,24 @@ export default async function Page() {
 
       <div className="flex max-w-2xl flex-col gap-6 px-5 py-6 md:px-8">
         <section className="rounded-lg border p-4">
-          <h2 className="font-medium">Utilizatori cu acces</h2>
+          <h2 className="font-medium">Cine are acces</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Doar aceste adrese pot primi link de autentificare.
+            Doar aceste adrese pot primi link de autentificare. Proprietarii pot
+            adăuga și scoate oameni; editorii fac restul.
           </p>
-          <ul className="mt-3 divide-y">
-            {(utilizatori ?? []).map((u) => (
-              <li key={u.id} className="flex flex-wrap items-center gap-x-3 py-2 text-sm">
-                <span className="font-medium">{u.name ?? u.email}</span>
-                <span className="text-muted-foreground break-all">{u.email}</span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {u.role === 'owner' ? 'proprietar' : 'editor'}
-                  {u.last_login_at ? ` · ultima intrare ${formateazaDataOra(u.last_login_at)}` : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4">
+            <GestiuneAdmini
+              administratori={(utilizatori ?? []).map((u) => ({
+                id: u.id,
+                email: u.email,
+                name: u.name,
+                role: u.role,
+                last_login_at: u.last_login_at,
+              }))}
+              suntEu={eu?.id ?? ''}
+              potGestiona={eu?.role === 'owner'}
+            />
+          </div>
         </section>
 
         <section className="rounded-lg border p-4">
