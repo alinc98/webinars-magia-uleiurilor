@@ -6,6 +6,7 @@ import { trimiteEvenimentMeta } from '@/lib/meta-capi'
 import { ipClient } from '@/lib/rate-limit'
 import { textCurentDeConsimtamant } from '@/lib/consimtamant-server'
 import { getDestinatar, getWebinarPentruEmail } from '@/lib/email/destinatar'
+import { env } from '@/lib/env'
 import { trimiteSablon } from '@/lib/email/trimite'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { inscriereSchema } from '@/lib/validations/inscriere'
@@ -21,8 +22,16 @@ export async function POST(request: Request) {
   const cerere = await citesteCerere(request, inscriereSchema, 'inscriere')
   if (!cerere.ok) return cerere.raspuns
 
-  const { slug, name, email, phone, consent, attendance_preference, tracking, event_id } =
-    cerere.date
+  const {
+    slug,
+    name,
+    email,
+    phone,
+    consent,
+    attendance_preference,
+    tracking,
+    event_id,
+  } = cerere.date
 
   // Versiunea textului acceptat se salvează pe contact: dacă textul se
   // schimbă, știi cine ce a acceptat (brief §10).
@@ -45,9 +54,12 @@ export async function POST(request: Request) {
   if (error) {
     // Formularul de înscriere e singurul lucru care n-are voie să pice în
     // tăcere în timpul unei campanii (brief §5).
-    Sentry.captureException(new Error(`register_for_webinar: ${error.message}`), {
-      tags: { ruta: 'inscriere', slug },
-    })
+    Sentry.captureException(
+      new Error(`register_for_webinar: ${error.message}`),
+      {
+        tags: { ruta: 'inscriere', slug },
+      },
+    )
     console.error('register_for_webinar a eșuat:', error.message)
     return raspunsEroare('server_error', 500)
   }
@@ -91,8 +103,13 @@ export async function POST(request: Request) {
     await trimiteEvenimentMeta({
       eventName: 'Lead',
       eventId: event_id,
+      // `new URL(cale, baza)` în loc de lipit cu şablon: concatenarea crudă
+      // dădea adresă greşită dacă variabila avea slash la final, iar dacă
+      // lipsea de tot ieşea o cale relativă, pe care Meta o refuză tăcut.
+      // `env.siteUrl()` e aceeaşi valoare normalizată din care se construiesc
+      // şi linkurile de autentificare.
       eventSourceUrl: tracking.landing_page
-        ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}${tracking.landing_page}`
+        ? new URL(tracking.landing_page, env.siteUrl()).toString()
         : undefined,
       email,
       phone,
