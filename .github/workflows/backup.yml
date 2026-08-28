@@ -29,7 +29,13 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-17
-          pg_dump --version
+          # `/usr/bin/pg_dump` e un wrapper care alege singur versiunea şi
+          # rămâne pe 16 chiar după ce 17 e instalat. Punem binarul versionat
+          # în faţa PATH-ului şi verificăm pe loc — dacă tot nu e 17, pasul
+          # cade aici, nu peste două minute, în dump.
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+          /usr/lib/postgresql/17/bin/pg_dump --version | grep -q ' 17\.' \
+            || { echo '::error::pg_dump nu e versiunea 17'; exit 1; }
 
       - name: pg_dump
         env:
