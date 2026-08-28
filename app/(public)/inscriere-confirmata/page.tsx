@@ -110,15 +110,36 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
             </>
           )}
 
+          {/* Titlul bonusului stă după două puncte, ca obiect, nu ca subiect al
+              unei propoziţii pe care o scriem noi. Înainte ieşea „Cele trei
+              flacoane … îl primeşti": acordul se rupea la orice bonus care nu
+              era masculin singular. Aşa, textul scris în admin apare aşa cum a
+              fost scris. */}
           {webinar?.bonus_title && (
-            <p className="text-body-sm text-text-muted bg-surface-botanic rounded-brand-md mt-6 p-4">
-              <strong className="text-sage-800">Nu uita:</strong>{' '}
-              {webinar.bonus_title} îl primești dacă participi live.
-            </p>
+            <div className="text-body-sm text-text-muted bg-surface-botanic rounded-brand-md mt-6 p-4">
+              <p>
+                <strong className="text-sage-800">
+                  Primești dacă participi live:
+                </strong>{' '}
+                {webinar.bonus_title}
+              </p>
+              {webinar.bonus_description && (
+                <p className="mt-1">{webinar.bonus_description}</p>
+              )}
+            </div>
           )}
 
-          <div className="mt-8">
-            <ButonLink href="/" varianta="ghost">
+          {/* Despărţit de linie: e pasul următor, nu o a treia variantă de
+              adăugat în calendar. Conturat, nu terracotta — culoarea caldă
+              rămâne pentru înscriere, ca să nu tragă atenţia de la calendar,
+              care e ce reduce neprezentările. */}
+          <div className="border-brand-border mt-10 border-t pt-8">
+            <ButonLink
+              href="/"
+              varianta="secundar"
+              latimeIntreaga
+              className="sm:inline-flex sm:w-auto"
+            >
               Vezi toate întâlnirile
             </ButonLink>
           </div>
