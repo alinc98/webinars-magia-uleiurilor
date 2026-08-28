@@ -19,14 +19,17 @@ const email = z
   .max(254, 'Adresa e prea lungă.')
   .pipe(z.email('Verifică adresa de email.'))
 
-// Numerele românești, cu sau fără prefix, cu spații sau puncte. Câmpul e
-// opțional: fiecare câmp obligatoriu în plus taie din conversii (brief §12.10).
+// Numerele românești, cu sau fără prefix, cu spații sau puncte.
+//
+// Obligatoriu, deşi brief §12.10 cerea altfel: fiecare câmp în plus taie din
+// conversii, iar ăsta e cel mai scump dintre ele. E o decizie asumată, nu o
+// scăpare — dacă înscrierile scad vizibil după prima campanie, aici se umblă
+// întâi.
 const telefon = z
   .string()
   .trim()
+  .min(1, 'Scrie numărul de telefon.')
   .regex(/^[+()\d\s.-]{9,20}$/, 'Verifică numărul de telefon.')
-  .optional()
-  .or(z.literal('').transform(() => undefined))
 
 const consimtamant = z.literal(true, {
   error: 'Trebuie să accepți politica de confidențialitate.',

@@ -145,7 +145,7 @@ export function FormularInscriere({
         name="phone"
         type="tel"
         eticheta="Telefon"
-        optional
+        required
         autoComplete="tel"
         inputMode="tel"
         eroare={erori.phone}
