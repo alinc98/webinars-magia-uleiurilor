@@ -45,5 +45,5 @@ export const env = {
   supabaseServiceRoleKey: () => need('SUPABASE_SERVICE_ROLE_KEY'),
   cronSecret: () => need('CRON_SECRET'),
   siteUrl: () =>
-    normalizeazaUrlDeBaza(process.env.NEXT_PUBLIC_SITE_URL) ?? 'http://localhost:3000',
+    normalizeazaUrlDeBaza(process.env.NEXT_PUBLIC_SITE_URL) ?? 'http://localhost:3200',
 }
