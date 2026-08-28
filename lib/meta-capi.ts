@@ -56,13 +56,16 @@ function hashTelefon(telefon?: string | null): string | undefined {
  * `fbc` se construiește din `fbclid`, în formatul cerut de Meta:
  * `fb.<subdomain_index>.<timestamp_ms>.<fbclid>`.
  */
-function construiesteFbc(fbclid?: string | null, cand?: Date): string | undefined {
+function construiesteFbc(
+  fbclid?: string | null,
+  cand?: Date,
+): string | undefined {
   if (!fbclid) return undefined
   return `fb.1.${(cand ?? new Date()).getTime()}.${fbclid}`
 }
 
 export async function trimiteEvenimentMeta(
-  eveniment: EvenimentMeta
+  eveniment: EvenimentMeta,
 ): Promise<{ ok: boolean; motiv?: string }> {
   const pixelId = process.env.META_PIXEL_ID
   const token = process.env.META_CAPI_TOKEN
@@ -86,7 +89,10 @@ export async function trimiteEvenimentMeta(
 
   for (const cheie of Object.keys(userData)) {
     const valoare = userData[cheie]
-    if (valoare === undefined || (Array.isArray(valoare) && valoare.length === 0)) {
+    if (
+      valoare === undefined ||
+      (Array.isArray(valoare) && valoare.length === 0)
+    ) {
       delete userData[cheie]
     }
   }
@@ -116,19 +122,54 @@ export async function trimiteEvenimentMeta(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(corp),
-      }
+      },
     )
 
+    const text = await raspuns.text()
+
     if (!raspuns.ok) {
-      const text = await raspuns.text()
-      console.error('CAPI a răspuns cu eroare:', raspuns.status, text.slice(0, 400))
+      console.error(
+        'CAPI a răspuns cu eroare:',
+        raspuns.status,
+        text.slice(0, 400),
+      )
       return { ok: false, motiv: `http_${raspuns.status}` }
     }
+
+    // Un răspuns 200 nu înseamnă că Meta a fost mulţumit: avertismentele vin
+    // în `messages`, iar noi le aruncam. Logăm şi ce am trimis, ca o
+    // nepotrivire între adresa aşteptată şi cea primită să se vadă din
+    // jurnale, nu din presupuneri. Fără date personale — doar identificatori.
+    let mesaje: unknown
+    let primite: unknown
+    try {
+      const parsat = JSON.parse(text)
+      mesaje = parsat?.messages
+      primite = parsat?.events_received
+    } catch {
+      // Răspuns neaşteptat; nu merită să stricăm înscrierea pentru atât.
+    }
+
+    console.info(
+      'CAPI trimis:',
+      JSON.stringify({
+        event_name: eveniment.eventName,
+        event_id: eveniment.eventId,
+        event_source_url: eveniment.eventSourceUrl ?? null,
+        chei_user_data: Object.keys(userData),
+        cu_cod_de_test: Boolean(process.env.META_TEST_EVENT_CODE),
+        events_received: primite ?? null,
+        messages: mesaje ?? null,
+      }),
+    )
 
     return { ok: true }
   } catch (eroare) {
     // Tracking-ul nu are voie să pice înscrierea.
-    console.error('CAPI a eșuat:', eroare instanceof Error ? eroare.message : eroare)
+    console.error(
+      'CAPI a eșuat:',
+      eroare instanceof Error ? eroare.message : eroare,
+    )
     return { ok: false, motiv: 'retea' }
   }
 }
