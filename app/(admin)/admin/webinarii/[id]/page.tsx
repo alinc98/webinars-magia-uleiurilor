@@ -7,6 +7,7 @@ import { FormularWebinar } from '@/components/admin/formular-webinar'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 import { EditorWebinar } from './editor'
+import { StergeWebinar } from './sterge'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
     { data: speakeri },
     { data: legaturi },
     { count: inscrisi },
+    { count: inscrieriTotal },
   ] = await Promise.all([
     supabase.from('webinars').select('*').eq('id', id).maybeSingle(),
     supabase
@@ -37,6 +39,11 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
       .select('id', { count: 'exact', head: true })
       .eq('webinar_id', id)
       .eq('kind', 'live'),
+    // Fără filtrul pe `kind`: la ştergere pleacă toate, nu doar cele live.
+    supabase
+      .from('registrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('webinar_id', id),
   ])
 
   if (!webinar) notFound()
@@ -91,6 +98,8 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
         }}
         speakeri={speakeri ?? []}
       />
+
+      <StergeWebinar id={webinar.id} inscrieri={inscrieriTotal ?? 0} />
     </>
   )
 }

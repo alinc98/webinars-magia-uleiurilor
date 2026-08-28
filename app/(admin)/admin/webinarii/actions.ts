@@ -71,6 +71,45 @@ function reimprospateaza(slug: string, slugVechi?: string) {
   if (slugVechi && slugVechi !== slug) revalidatePath(`/webinar/${slugVechi}`)
 }
 
+/**
+ * Ştergerea unui webinar.
+ *
+ * Spre deosebire de contacte, unde anonimizăm ca să nu stricăm statistica
+ * evenimentelor trecute, aici chiar ştergem: `registrations` are
+ * `ON DELETE CASCADE` pe `webinar_id`, iar înscrierile la un eveniment care nu
+ * mai există n-ar mai însemna nimic. Consecinţa e reală şi ireversibilă, aşa
+ * că dialogul din interfaţă spune câte înscrieri pleacă odată cu el şi
+ * propune `Anulat` ca alternativă care păstrează istoricul.
+ *
+ * Contactele rămân: omul care s-a înscris rămâne în bază, doar legătura cu
+ * evenimentul dispare.
+ */
+export async function stergeWebinar(id: string) {
+  await ceruteDrepturi()
+  const supabase = createAdminClient()
+
+  // Slug-ul se citeşte înainte: după ştergere n-avem de unde să ştim ce pagină
+  // publică trebuie reîmprospătată.
+  const { data: existent } = await supabase
+    .from('webinars')
+    .select('slug')
+    .eq('id', id)
+    .maybeSingle()
+
+  const { error } = await supabase.from('webinars').delete().eq('id', id)
+
+  if (error) {
+    console.error('Ştergerea webinarului a eşuat:', error.message)
+    return { ok: false, mesaj: 'Nu am putut şterge evenimentul.' }
+  }
+
+  revalidatePath('/')
+  revalidatePath('/admin/webinarii')
+  if (existent?.slug) revalidatePath(`/webinar/${existent.slug}`)
+
+  redirect('/admin/webinarii')
+}
+
 export async function salveazaWebinar(
   id: string | null,
   _stare: StareFormular,
