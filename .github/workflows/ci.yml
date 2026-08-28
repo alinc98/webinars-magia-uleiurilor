@@ -18,4 +18,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+
+      # `pnpm build` prerandează paginile de webinar, iar pentru asta cere
+      # slug-urile din bază. CI-ul n-are, şi nici n-ar trebui să aibă, acces la
+      # baza de producţie. Valorile de mai jos sunt false intenţionat: cererea
+      # eşuează pe loc, `generateStaticParams` întoarce o listă goală, iar
+      # paginile se randează la cerere. Ce verificăm aici e că proiectul
+      # compilează, nu ce date are.
       - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:1
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci
+          SUPABASE_SERVICE_ROLE_KEY: ci
+          NEXT_PUBLIC_SITE_URL: https://webinar.magia-uleiurilor.ro
+          CRON_SECRET: ci
