@@ -30,7 +30,7 @@ export async function getWebinarPentruEmail(
   const { data } = await supabase
     .from('webinars')
     .select(
-      'id, title, slug, starts_at, duration_min, format, join_url, venue_name, address, city, map_url, venue_notes, recording_url, bonus_title'
+      'id, title, slug, starts_at, duration_min, format, join_url, venue_name, address, city, map_url, venue_notes, useful_info, recording_url, bonus_title'
     )
     .eq('id', webinarId)
     .maybeSingle()
@@ -50,6 +50,7 @@ export async function getWebinarPentruEmail(
     city: data.city,
     mapUrl: data.map_url,
     venueNotes: data.venue_notes,
+    usefulInfo: data.useful_info,
     recordingUrl: data.recording_url,
     bonusTitle: data.bonus_title,
   }

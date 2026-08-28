@@ -30,6 +30,7 @@ export type ValoriWebinar = {
   for_whom?: string[]
   bonus_title?: string | null
   bonus_description?: string | null
+  useful_info?: string | null
   faq?: { q: string; a: string }[]
   starts_at?: string
   duration_min?: number
@@ -222,6 +223,22 @@ export function FormularWebinar({
             />
           </Camp>
         </div>
+
+        <Camp
+          eticheta="Informații utile"
+          id={`${idFormular}-utile`}
+          hint={
+            'Ajunge în emailul de confirmare, la orice format. Ce e bine să știe omul înainte — de la „ai nevoie de căști” până la „vino cu zece minute mai devreme”.'
+          }
+          eroare={e.useful_info}
+        >
+          <Textarea
+            id={`${idFormular}-utile`}
+            name="useful_info"
+            rows={3}
+            defaultValue={valori.useful_info ?? ''}
+          />
+        </Camp>
 
         <EditorFaq initiale={valori.faq ?? []} erori={e} />
       </Sectiune>

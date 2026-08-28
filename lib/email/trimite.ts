@@ -73,7 +73,27 @@ export async function trimiteSablon({
   }
 
   const siteUrl = env.siteUrl()
-  const unsubscribeUrl = `${siteUrl}/dezabonare/${destinatar.unsubscribeToken}`
+
+  // Linkul de dezabonare apare doar pe emailurile pe care dezabonarea chiar le
+  // opreşte. Pe o confirmare ar minţi: cine se dezabonează primeşte în
+  // continuare accesul la evenimentul la care s-a înscris, altfel n-ar avea cum
+  // să ajungă la el.
+  const unsubscribeUrl = ESTE_MARKETING[sablon]
+    ? `${siteUrl}/dezabonare/${destinatar.unsubscribeToken}`
+    : undefined
+
+  // La evenimentele hibride, omul alege la înscriere cum vine. Citim aici, nu
+  // de la apelanţi: reamintirile pleacă din cron, care n-are de unde s-o ştie.
+  let preferinta: 'fizic' | 'online' | null = null
+  if (webinar.format === 'hibrid') {
+    const { data } = await createAdminClient()
+      .from('registrations')
+      .select('attendance_preference')
+      .eq('contact_id', destinatar.contactId)
+      .eq('webinar_id', webinar.id)
+      .maybeSingle()
+    preferinta = (data?.attendance_preference as 'fizic' | 'online' | null) ?? null
+  }
 
   const locatie =
     webinar.format === 'online'
@@ -98,6 +118,7 @@ export async function trimiteSablon({
     siteUrl,
     unsubscribeUrl,
     calendarUrl: cuCalendar ? linkGoogleCalendar(optiuniIcs) : undefined,
+    preferinta,
   }
 
   const element = (() => {

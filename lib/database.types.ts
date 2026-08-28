@@ -587,6 +587,7 @@ export type Database = {
           timezone: string
           title: string
           updated_at: string
+          useful_info: string | null
           utm_default: string | null
           venue_name: string | null
           venue_notes: string | null
@@ -624,6 +625,7 @@ export type Database = {
           timezone?: string
           title: string
           updated_at?: string
+          useful_info?: string | null
           utm_default?: string | null
           venue_name?: string | null
           venue_notes?: string | null
@@ -661,6 +663,7 @@ export type Database = {
           timezone?: string
           title?: string
           updated_at?: string
+          useful_info?: string | null
           utm_default?: string | null
           venue_name?: string | null
           venue_notes?: string | null

@@ -53,6 +53,10 @@ export const webinarSchema = z
     bonus_title: optional(200),
     bonus_description: optional(1000),
 
+    // Merge în emailul de confirmare, la orice format. `venue_notes` rămâne
+    // pentru ce ţine strict de un loc fizic.
+    useful_info: optional(2000),
+
     starts_at: z.string().min(1, 'Alege data și ora.'),
     duration_min: z.coerce.number<number>().int().positive().max(1440),
     format: z.enum(['online', 'fizic', 'hibrid']),

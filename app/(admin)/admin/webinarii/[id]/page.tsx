@@ -72,6 +72,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
           for_whom: (webinar.for_whom as string[]) ?? [],
           bonus_title: webinar.bonus_title,
           bonus_description: webinar.bonus_description,
+          useful_info: webinar.useful_info,
           faq: (webinar.faq as { q: string; a: string }[] | null) ?? [],
           starts_at: webinar.starts_at,
           duration_min: webinar.duration_min,

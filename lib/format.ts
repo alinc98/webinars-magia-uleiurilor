@@ -36,6 +36,20 @@ export function formateazaDataOra(iso: string) {
   return `${formateazaData(iso)}, ${formateazaOra(iso)}`
 }
 
+/**
+ * „45 de minute", dar „15 minute".
+ *
+ * În română, „de" se pune la numeralele de la 20 în sus, iar apoi după
+ * numărul format din ultimele două cifre: 120 îl cere, 115 nu. Duratele
+ * obişnuite sunt de 60 sau 90, unde n-ai cum să greşeşti — dar un atelier de
+ * 15 minute ar fi ieşit „15 de minute".
+ */
+export function formateazaDurata(minute: number) {
+  const ultimele = minute % 100
+  const cuDe = ultimele === 0 || ultimele >= 20
+  return `${minute}${cuDe ? ' de' : ''} minute`
+}
+
 export const ETICHETA_FORMAT: Record<string, string> = {
   online: 'Online',
   fizic: 'La fața locului',
