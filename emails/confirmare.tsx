@@ -12,6 +12,7 @@ import {
   ETICHETA_FORMAT,
   formateazaDataOra,
   formateazaDurata,
+  formateazaPret,
 } from '@/lib/format'
 
 /**
@@ -45,6 +46,9 @@ export function EmailConfirmare({
     ['Durată', formateazaDurata(webinar.durationMin)],
     ['Format', ETICHETA_FORMAT[webinar.format]!],
   ]
+  if (webinar.priceBani != null) {
+    randuri.push(['Cost', formateazaPret(webinar.priceBani)])
+  }
   if (arataFizic && webinar.venueName) randuri.push(['Unde', webinar.venueName])
   if (arataFizic && webinar.address) {
     randuri.push([
@@ -70,6 +74,14 @@ export function EmailConfirmare({
       </Paragraf>
 
       <Detalii randuri={randuri} />
+
+      {/* Platforma nu încasează. Singurul lucru onest de spus e că urmează
+          un mesaj — altfel omul rămâne cu o sumă şi fără nicio instrucţiune. */}
+      {webinar.priceBani != null && (
+        <Discret>
+          Instrucțiunile de plată îți vin în curând, pe email sau telefon.
+        </Discret>
+      )}
 
       {alesFizic && (
         <Paragraf>

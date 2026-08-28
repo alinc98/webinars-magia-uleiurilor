@@ -11,6 +11,8 @@ export type DateWebinar = {
   mapUrl?: string | null
   venueNotes?: string | null
   usefulInfo?: string | null
+  /** În bani. NULL înseamnă gratuit. */
+  priceBani?: number | null
   recordingUrl?: string | null
   bonusTitle?: string | null
 }

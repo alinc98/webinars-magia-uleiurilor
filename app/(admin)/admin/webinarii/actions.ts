@@ -52,6 +52,12 @@ function citesteFormular(formData: FormData) {
     replay_public: formData.get('replay_public') === 'on',
     speaker_ids: formData.getAll('speaker_ids').filter(Boolean) as string[],
     faq: citesteFaq(formData),
+    // Câmpul din formular e în lei; coloana e în bani. Când alegerea e
+    // „gratuit", suma se ignoră chiar dacă a rămas scrisă în câmp: alegerea
+    // are ultimul cuvânt, altfel un eveniment trecut înapoi pe gratuit ar
+    // rămâne cu preţ în bază.
+    price_bani:
+      formData.get('price_mod') === 'platit' ? formData.get('price_lei') : '',
   })
 }
 
@@ -126,7 +132,8 @@ export async function salveazaWebinar(
     }
   }
 
-  const { speaker_ids, gazda_id, ...date } = rezultat.data
+  // `price_mod` e stare de interfaţă, nu coloană.
+  const { speaker_ids, gazda_id, price_mod: _mod, ...date } = rezultat.data
   const supabase = createAdminClient()
 
   // Un singur webinar evidențiat: baza garantează asta printr-un index unic,

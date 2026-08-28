@@ -23,6 +23,7 @@ import { getTextConsimtamant } from '@/lib/consimtamant-server'
 import { openGraph } from '@/lib/seo'
 import {
   ETICHETA_FORMAT,
+  formateazaPret,
   formateazaDataOra,
   numesteEvenimentul,
 } from '@/lib/format'
@@ -87,6 +88,10 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   const online = format !== 'fizic'
   const laFataLocului = format !== 'online'
 
+  // NULL în bază înseamnă gratuit. O singură coloană, deci nu există starea
+  // „cu plată, fără preț".
+  const pret = webinar.price_bani ?? null
+
   const puncte = (webinar.learning_points as string[] | null) ?? []
   const pentruCine = (webinar.for_whom as string[] | null) ?? []
   const faq = (webinar.faq as { q: string; a: string }[] | null) ?? []
@@ -95,7 +100,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
     { eticheta: 'Data', valoare: formateazaDataOra(webinar.starts_at!) },
     { eticheta: 'Durata', valoare: `${webinar.duration_min} de minute` },
     { eticheta: 'Format', valoare: ETICHETA_FORMAT[format] },
-    { eticheta: 'Cost', valoare: 'Gratuit' },
+    { eticheta: 'Cost', valoare: pret === null ? 'Gratuit' : formateazaPret(pret) },
   ]
   if (laFataLocului && webinar.venue_name) {
     detalii.push({ eticheta: 'Unde', valoare: webinar.venue_name })
@@ -113,7 +118,11 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   return (
     <div className="bg-brand-bg text-text-body font-body">
       <UrmareteViewContent />
-      <BaraSticky startsAt={webinar.starts_at!} format={format} />
+      <BaraSticky
+        startsAt={webinar.starts_at!}
+        format={format}
+        gratuit={pret === null}
+      />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className="bg-surface relative overflow-hidden px-5 pt-8 pb-12">
@@ -140,7 +149,8 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           />
 
           <Supratitlu>
-            {numesteEvenimentul(format)} gratuit
+            {numesteEvenimentul(format)}
+            {pret === null ? ' gratuit' : ''}
             {webinar.capacity ? ' · locuri limitate' : ''}
           </Supratitlu>
 
@@ -171,7 +181,9 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
                   : ETICHETA_FORMAT[format]}
             </Insigna>
             <Insigna ton="sage">{webinar.duration_min} de minute</Insigna>
-            <Insigna ton="gold">Gratuit</Insigna>
+            <Insigna ton="gold">
+              {pret === null ? 'Gratuit' : formateazaPret(pret)}
+            </Insigna>
           </div>
 
           <div className="mt-7 max-w-[var(--container-form)]">
@@ -186,6 +198,15 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
                 ? 'Îți trimitem linkul de acces pe email, imediat după înscriere.'
                 : 'Îți trimitem adresa și detaliile practice pe email, imediat după înscriere.'}
             </p>
+            {/* Pagina spune cât costă, dar nu şi ce face omul mai departe.
+                Platforma nu încasează nimic, deci singurul răspuns onest e că
+                urmează un mesaj. */}
+            {pret !== null && (
+              <p className="text-caption text-text-muted mt-1">
+                Instrucțiunile de plată îți vin după înscriere, pe email sau
+                telefon.
+              </p>
+            )}
           </div>
         </div>
       </section>

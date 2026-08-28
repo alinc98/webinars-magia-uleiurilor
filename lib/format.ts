@@ -50,6 +50,27 @@ export function formateazaDurata(minute: number) {
   return `${minute}${cuDe ? ' de' : ''} minute`
 }
 
+/**
+ * „150 lei", dar „149,50 lei".
+ *
+ * Fără zecimale la sumele rotunde: „150,00 lei" pe o pagină de prezentare
+ * arată a bon fiscal. Virgulă, nu punct — aşa se scriu banii în română.
+ */
+export function formateazaPret(bani: number) {
+  return `${pretInLei(bani)} lei`
+}
+
+/**
+ * Doar numărul, pentru câmpul din admin.
+ *
+ * Aceeaşi regulă ca la afişare, ca precompletarea să arate „149,50", nu
+ * „149,5" — altfel formularul pare că a pierdut o cifră.
+ */
+export function pretInLei(bani: number) {
+  const lei = bani / 100
+  return bani % 100 === 0 ? String(lei) : lei.toFixed(2).replace('.', ',')
+}
+
 export const ETICHETA_FORMAT: Record<string, string> = {
   online: 'Online',
   fizic: 'La fața locului',

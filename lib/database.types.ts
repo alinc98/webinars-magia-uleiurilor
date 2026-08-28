@@ -575,6 +575,7 @@ export type Database = {
           listed: boolean
           map_url: string | null
           meta_pixel_id: string | null
+          price_bani: number | null
           recording_url: string | null
           replay_public: boolean
           seo_description: string | null
@@ -613,6 +614,7 @@ export type Database = {
           listed?: boolean
           map_url?: string | null
           meta_pixel_id?: string | null
+          price_bani?: number | null
           recording_url?: string | null
           replay_public?: boolean
           seo_description?: string | null
@@ -651,6 +653,7 @@ export type Database = {
           listed?: boolean
           map_url?: string | null
           meta_pixel_id?: string | null
+          price_bani?: number | null
           recording_url?: string | null
           replay_public?: boolean
           seo_description?: string | null
@@ -730,6 +733,7 @@ export type Database = {
           listed: boolean | null
           map_url: string | null
           meta_pixel_id: string | null
+          price_bani: number | null
           recording_url: string | null
           registrations_count: number | null
           replay_public: boolean | null
@@ -745,6 +749,7 @@ export type Database = {
           timezone: string | null
           title: string | null
           updated_at: string | null
+          useful_info: string | null
           utm_default: string | null
           venue_name: string | null
           venue_notes: string | null

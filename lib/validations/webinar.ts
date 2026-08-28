@@ -1,12 +1,25 @@
 import { z } from 'zod'
 
+/**
+ * Câmp de text opţional. Gol înseamnă `null`, nu „lasă cum era".
+ *
+ * Varianta dinainte încerca `.or(z.literal(''))`, dar ramura aia nu se atingea
+ * niciodată: un şir gol trece prin `z.string()`, deci `.or` n-avea ce prinde,
+ * iar în bază ajungea `""`. De-acolo, `seo_title ?? title` returna şirul gol,
+ * nu titlul — şi paginile salvate din admin fără titlu SEO rămâneau cu
+ * `<title>` gol.
+ *
+ * `null`, nu `undefined`: cheile `undefined` dispar din JSON, iar PostgREST nu
+ * atinge coloana. Adică un câmp golit în admin şi-ar fi păstrat vechea
+ * valoare, în tăcere.
+ */
 const optional = (max = 2000) =>
   z
     .string()
     .trim()
     .max(max)
     .optional()
-    .or(z.literal('').transform(() => undefined))
+    .transform((v) => (v && v.length > 0 ? v : null))
 
 /** Listele editabile prin drag & drop din formular ajung ca text, un rând per punct. */
 const listaDeRanduri = z
@@ -18,6 +31,31 @@ const listaDeRanduri = z
       .map((r) => r.trim())
       .filter(Boolean),
   )
+
+/**
+ * Preţul se scrie în lei şi se ţine în bani.
+ *
+ * Acceptăm şi virgula, şi punctul: pe tastatura românească virgula e
+ * separatorul firesc, iar un formular care refuză „149,50" pare stricat.
+ * Rotunjim la înmulţire, altfel 149.99 * 100 iese 14998.999999999998.
+ */
+const pret = z
+  .string()
+  .optional()
+  .transform((v) => (v ?? '').trim().replace(/\s/g, '').replace(',', '.'))
+  .pipe(
+    z.union([
+      z.literal(''),
+      z
+        .string()
+        .regex(
+          /^\d+(\.\d{1,2})?$/,
+          'Scrie prețul în lei, de exemplu 150 sau 149,50.',
+        ),
+    ]),
+  )
+  .transform((v) => (v === '' ? null : Math.round(Number(v) * 100)))
+  .refine((v) => v === null || v > 0, 'Prețul trebuie să fie mai mare decât zero.')
 
 export const webinarSchema = z
   .object({
@@ -72,9 +110,16 @@ export const webinarSchema = z
     capacity: z
       .union([
         z.coerce.number<number>().int().positive(),
-        z.literal('').transform(() => undefined),
+        // `null`, ca la câmpurile de text: altfel ştergerea capacităţii n-ar
+        // ajunge niciodată în bază.
+        z.literal('').transform(() => null),
       ])
       .optional(),
+
+    // Alegerea din formular. Nu se salvează nicăieri: în bază, adevărul e o
+    // singură coloană, iar „gratuit" înseamnă preţ gol.
+    price_mod: z.enum(['gratuit', 'platit']).default('gratuit'),
+    price_bani: pret,
     cover_image_url: optional(500),
 
     status: z.enum(['draft', 'published', 'live', 'ended', 'cancelled']),
@@ -91,6 +136,10 @@ export const webinarSchema = z
       .max(3, 'Cel mult trei speakeri.')
       .default([]),
     gazda_id: z.string().uuid().optional(),
+  })
+  .refine((d) => d.price_mod !== 'platit' || d.price_bani !== null, {
+    path: ['price_bani'],
+    message: 'Scrie prețul, sau treci evenimentul pe gratuit.',
   })
   // Aceleași reguli ca ale constrângerilor din bază, ca omul să vadă eroarea
   // sub câmp, nu ca un 500 venit din Postgres.

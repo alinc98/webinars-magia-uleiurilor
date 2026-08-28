@@ -19,6 +19,7 @@ import {
   ETICHETA_FORMAT,
   formateazaData,
   formateazaDataOra,
+  formateazaPret,
 } from '@/lib/format'
 import { LINKURI } from '@/lib/linkuri'
 import {
@@ -167,6 +168,11 @@ function Meta({ webinar }: { webinar: WebinarPublic }) {
         {ETICHETA_FORMAT[format]}
         {format !== 'online' && webinar.city ? ` · ${webinar.city}` : ''}
       </Insigna>
+      {/* Prețul stă în listă, nu doar pe pagina evenimentului: cine se uită
+          peste toate merită să vadă din prima care costă. */}
+      {webinar.price_bani != null && (
+        <Insigna ton="sage">{formateazaPret(webinar.price_bani)}</Insigna>
+      )}
       {webinar.seats_left !== null && (
         <Insigna ton={webinar.is_full ? 'neutru' : 'gold'}>
           {webinar.is_full ? 'locuri epuizate' : `${webinar.seats_left} locuri`}

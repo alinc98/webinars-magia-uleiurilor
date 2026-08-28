@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useActiuneFormular } from '@/lib/formular'
+import { pretInLei } from '@/lib/format'
 import { sugereazaSlug } from '@/lib/validations/webinar'
 import type { StareFormular } from '@/app/(admin)/admin/webinarii/actions'
 
@@ -43,6 +44,7 @@ export type ValoriWebinar = {
   map_url?: string | null
   venue_notes?: string | null
   capacity?: number | null
+  price_bani?: number | null
   cover_image_url?: string | null
   status?: string
   listed?: boolean
@@ -89,6 +91,11 @@ export function FormularWebinar({
     valori.replay_public ?? false,
   )
   useSincronizat(valori.replay_public ?? false, setReplayPublic)
+
+  // Alegerea e dedusă din preţ, nu ţinută separat în bază: un eveniment are
+  // preţ sau n-are, iar două surse de adevăr s-ar putea contrazice.
+  const [cuPlata, setCuPlata] = useState(valori.price_bani != null)
+  useSincronizat(valori.price_bani != null, setCuPlata)
 
   const implicit = speakeri.find((s) => s.is_default)
   const [alesi, setAlesi] = useState<string[]>(
@@ -346,6 +353,57 @@ export function FormularWebinar({
               defaultValue={valori.capacity ?? ''}
             />
           </Camp>
+        </div>
+
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium">Cost</legend>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="price_mod"
+                value="gratuit"
+                checked={!cuPlata}
+                onChange={() => setCuPlata(false)}
+                className="accent-primary-800 size-4"
+              />
+              Gratuit
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="price_mod"
+                value="platit"
+                checked={cuPlata}
+                onChange={() => setCuPlata(true)}
+                className="accent-primary-800 size-4"
+              />
+              Cu plată
+            </label>
+          </div>
+
+          {cuPlata && (
+            <div className="mt-1 max-w-52">
+              <Camp
+                eticheta="Preț (lei)"
+                id={`${idFormular}-pret`}
+                hint="150 sau 149,50"
+                eroare={e.price_bani}
+              >
+                <Input
+                  id={`${idFormular}-pret`}
+                  name="price_lei"
+                  inputMode="decimal"
+                  defaultValue={
+                    valori.price_bani != null ? pretInLei(valori.price_bani) : ''
+                  }
+                />
+              </Camp>
+            </div>
+          )}
+        </fieldset>
+
+        <div className="grid gap-4 md:grid-cols-2">
         </div>
 
         <fieldset>
