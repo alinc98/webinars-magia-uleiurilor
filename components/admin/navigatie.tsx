@@ -35,7 +35,14 @@ export function Navigatie({ utilizator }: { utilizator: AdminUser }) {
 
   return (
     <>
-      <aside className="bg-admin-shell hidden w-52 shrink-0 flex-col py-3 md:flex">
+      {/*
+        `self-start` e cheia, nu `sticky`: într-un rând flex, bara se întindea
+        implicit pe toată înălțimea containerului, iar un element cât părintele
+        lui n-are unde să se lipească. Așa are exact înălțimea ecranului și
+        rămâne pe loc. `overflow-y-auto` o salvează pe ferestrele scunde, unde
+        „Ieși din cont" ar cădea sub marginea de jos.
+      */}
+      <aside className="bg-admin-shell sticky top-0 hidden h-svh w-52 shrink-0 flex-col self-start overflow-y-auto py-3 md:flex">
         <div className="text-sage-200 px-3 pb-3 text-[13px] font-semibold">
           Magia Uleiurilor · Admin
         </div>
