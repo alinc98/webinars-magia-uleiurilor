@@ -28,9 +28,15 @@ export type MesajEmail = {
  * Diferența e izolată aici. Restul codului trimite fără să știe pe unde pleacă.
  */
 export async function trimiteEmail(
-  mesaj: MesajEmail
-): Promise<{ ok: true; providerId: string | null } | { ok: false; error: string }> {
+  mesaj: MesajEmail,
+): Promise<
+  { ok: true; providerId: string | null } | { ok: false; error: string }
+> {
   const from = process.env.EMAIL_FROM ?? 'Magia Uleiurilor <contact@localhost>'
+  // Adresa de expediere e una de sistem, la care nu stă nimeni. Fără antetul
+  // ăsta, cine apasă „Răspunde" la confirmare scrie într-o cutie pe care n-o
+  // citeşte nimeni — şi crede că a întrebat.
+  const replyTo = process.env.EMAIL_REPLY_TO || undefined
   const apiKey = process.env.RESEND_API_KEY
 
   try {
@@ -38,6 +44,7 @@ export async function trimiteEmail(
       const resend = new Resend(apiKey)
       const { data, error } = await resend.emails.send({
         from,
+        replyTo,
         to: mesaj.to,
         subject: mesaj.subject,
         html: mesaj.html,
@@ -63,6 +70,7 @@ export async function trimiteEmail(
 
     const info = await transport.sendMail({
       from,
+      replyTo,
       to: mesaj.to,
       subject: mesaj.subject,
       html: mesaj.html,
@@ -77,6 +85,9 @@ export async function trimiteEmail(
 
     return { ok: true, providerId: info.messageId ?? null }
   } catch (eroare) {
-    return { ok: false, error: eroare instanceof Error ? eroare.message : 'eroare necunoscută' }
+    return {
+      ok: false,
+      error: eroare instanceof Error ? eroare.message : 'eroare necunoscută',
+    }
   }
 }
