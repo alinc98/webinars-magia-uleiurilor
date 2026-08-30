@@ -95,7 +95,17 @@ export const webinarSchema = z
     // pentru ce ţine strict de un loc fizic.
     useful_info: optional(2000),
 
-    starts_at: z.string().min(1, 'Alege data și ora.'),
+    // Moment absolut, cu fus. Un şir naiv ca „2026-09-23T22:00" ar fi citit
+    // de `new Date()` în fusul procesului — pe Vercel, UTC — şi ora ar sări cu
+    // trei ore. Refuzăm forma aia aici, ca greşeala să nu se poată întoarce
+    // pe furiş dacă cineva schimbă câmpul din formular.
+    starts_at: z
+      .string()
+      .min(1, 'Alege data și ora.')
+      .regex(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/,
+        'Alege data și ora.',
+      ),
     duration_min: z.coerce.number<number>().int().positive().max(1440),
     format: z.enum(['online', 'fizic', 'hibrid']),
 

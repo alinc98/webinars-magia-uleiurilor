@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { IncarcaImagine } from '@/components/admin/incarca-imagine'
+import { SelectorDataOra } from '@/components/admin/selector-data-ora'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -58,14 +59,6 @@ export type ValoriWebinar = {
 }
 
 const initial: StareFormular = { ok: false }
-
-/** `2026-09-14T19:00:00Z` → `2026-09-14T22:00`, ce așteaptă datetime-local. */
-function pentruInput(iso?: string) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 
 export function FormularWebinar({
   actiune,
@@ -317,12 +310,10 @@ export function FormularWebinar({
             id={`${idFormular}-start`}
             eroare={e.starts_at}
           >
-            <Input
+            <SelectorDataOra
               id={`${idFormular}-start`}
-              name="starts_at"
-              type="datetime-local"
-              defaultValue={pentruInput(valori.starts_at)}
-              required
+              nume="starts_at"
+              valoare={valori.starts_at}
             />
           </Camp>
           <Camp
