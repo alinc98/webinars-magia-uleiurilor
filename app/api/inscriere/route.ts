@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     email,
     phone,
     consent,
-    attendance_preference,
     tracking,
     event_id,
   } = cerere.date
@@ -46,7 +45,6 @@ export async function POST(request: Request) {
     p_consent_text_version: versiuneConsimtamant ?? undefined,
     p_phone: phone ?? undefined,
     p_kind: 'live',
-    p_attendance_preference: attendance_preference ?? undefined,
     p_source: 'lp',
     p_tracking: tracking,
   })

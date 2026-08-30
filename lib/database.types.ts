@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -289,7 +289,6 @@ export type Database = {
       }
       registrations: {
         Row: {
-          attendance_preference: string | null
           attended: boolean
           attended_minutes: number | null
           contact_id: string
@@ -310,7 +309,6 @@ export type Database = {
           webinar_id: string
         }
         Insert: {
-          attendance_preference?: string | null
           attended?: boolean
           attended_minutes?: number | null
           contact_id: string
@@ -331,7 +329,6 @@ export type Database = {
           webinar_id: string
         }
         Update: {
-          attendance_preference?: string | null
           attended?: boolean
           attended_minutes?: number | null
           contact_id?: string
@@ -815,7 +812,6 @@ export type Database = {
       }
       register_for_webinar: {
         Args: {
-          p_attendance_preference?: string
           p_consent: boolean
           p_consent_text_version?: string
           p_email: string
@@ -853,7 +849,7 @@ export type Database = {
         | "complained"
       registration_kind: "live" | "inregistrare"
       speaker_role: "gazda" | "invitat"
-      webinar_format: "online" | "fizic" | "hibrid"
+      webinar_format: "online" | "fizic"
       webinar_status: "draft" | "published" | "live" | "ended" | "cancelled"
     }
     CompositeTypes: {
@@ -1009,7 +1005,7 @@ export const Constants = {
       ],
       registration_kind: ["live", "inregistrare"],
       speaker_role: ["gazda", "invitat"],
-      webinar_format: ["online", "fizic", "hibrid"],
+      webinar_format: ["online", "fizic"],
       webinar_status: ["draft", "published", "live", "ended", "cancelled"],
     },
   },

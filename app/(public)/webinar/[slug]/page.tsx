@@ -84,7 +84,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   const lista = speakeri(webinar)
   const gazda = lista.find((s) => s.role_label === 'gazda') ?? lista[0]
   const invitati = lista.filter((s) => s.role_label === 'invitat')
-  const format = (webinar.format ?? 'online') as 'online' | 'fizic' | 'hibrid'
+  const format = (webinar.format ?? 'online') as 'online' | 'fizic'
   const online = format !== 'fizic'
   const laFataLocului = format !== 'online'
 
@@ -431,7 +431,6 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
               <div className="mt-6">
                 <FormularInscriere
                   slug={slug}
-                  format={format}
                   textConsimtamant={textConsimtamant?.body}
                 />
               </div>

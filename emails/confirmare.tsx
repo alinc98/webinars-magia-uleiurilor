@@ -21,10 +21,6 @@ import {
  * La evenimentele fizice conținutul e altul, nu doar alt link: adresa, harta și
  * notele practice iau locul linkului de întâlnire (brief §8).
  *
- * La cele hibride, omul a ales la înscriere cum vine. Punem în față calea pe
- * care a ales-o și o lăsăm pe cealaltă ca plasă de siguranță — două blocuri
- * egale, unul sub altul, l-ar pune să aleagă a doua oară. Când preferința
- * lipsește, arătăm ambele.
  */
 export function EmailConfirmare({
   name,
@@ -32,14 +28,9 @@ export function EmailConfirmare({
   siteUrl,
   unsubscribeUrl,
   calendarUrl,
-  preferinta,
 }: ContextEmail) {
-  const hibrid = webinar.format === 'hibrid'
-  const alesFizic = hibrid && preferinta === 'fizic'
-  const alesOnline = hibrid && preferinta === 'online'
-
-  const arataFizic = webinar.format === 'fizic' || (hibrid && !alesOnline)
-  const arataOnline = webinar.format === 'online' || (hibrid && !alesFizic)
+  const arataFizic = webinar.format === 'fizic'
+  const arataOnline = webinar.format === 'online'
 
   const randuri: [string, string][] = [
     ['Când', formateazaDataOra(webinar.startsAt)],
@@ -83,11 +74,6 @@ export function EmailConfirmare({
         </Discret>
       )}
 
-      {alesFizic && (
-        <Paragraf>
-          Ai ales să participi <strong>la fața locului</strong>.
-        </Paragraf>
-      )}
 
       {arataFizic && webinar.mapUrl && (
         <Buton href={webinar.mapUrl}>Deschide în Google Maps</Buton>
@@ -105,32 +91,12 @@ export function EmailConfirmare({
           piardă într-un email citit cu trei săptămâni înainte. */}
       {arataOnline && (
         <Paragraf>
-          {alesOnline
-            ? 'Ai ales să participi online.'
-            : 'Evenimentul are loc online.'}{' '}
-          Linkul de intrare îți vine pe email cu o zi înainte, și încă o dată cu
-          o oră înainte de început.
+          Evenimentul are loc online. Linkul de intrare îți vine pe email cu o
+          zi înainte, și încă o dată cu o oră înainte de început.
         </Paragraf>
       )}
 
-      {/* Plasa de siguranță la hibrid: cealaltă cale, discret, nu ca a doua
-          invitație de a alege. */}
-      {alesFizic && webinar.joinUrl && (
-        <Discret>
-          Dacă totuși nu poți ajunge, poți participa online — linkul vine odată
-          cu reamintirile.
-        </Discret>
-      )}
 
-      {alesOnline && webinar.address && (
-        <Discret>
-          Dacă te răzgândești și vrei să vii în persoană, ne găsești la{' '}
-          {[webinar.venueName, webinar.address, webinar.city]
-            .filter(Boolean)
-            .join(', ')}
-          .
-        </Discret>
-      )}
 
       {/* Tot blocul depinde de acelaşi lucru: fişierul .ics se ataşează şi
           linkul de Google se construieşte în aceeaşi ramură. Fără el, secţiunea

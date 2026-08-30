@@ -18,7 +18,7 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
   const slug = typeof w === 'string' ? w : undefined
   const webinar = slug ? await getWebinarBySlug(slug) : null
 
-  const format = (webinar?.format ?? 'online') as 'online' | 'fizic' | 'hibrid'
+  const format = (webinar?.format ?? 'online') as 'online' | 'fizic'
   const locatie =
     format === 'online'
       ? (webinar?.join_url ?? undefined)

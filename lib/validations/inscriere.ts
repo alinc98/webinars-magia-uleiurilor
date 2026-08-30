@@ -68,8 +68,6 @@ export const inscriereSchema = z.object({
   email,
   phone: telefon,
   consent: consimtamant,
-  /** Doar la evenimentele hibride (brief §12.8). */
-  attendance_preference: z.enum(['fizic', 'online']).optional(),
   website: honeypot,
   tracking: trackingSchema,
 })

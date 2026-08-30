@@ -82,18 +82,6 @@ export async function trimiteSablon({
     ? `${siteUrl}/dezabonare/${destinatar.unsubscribeToken}`
     : undefined
 
-  // La evenimentele hibride, omul alege la înscriere cum vine. Citim aici, nu
-  // de la apelanţi: reamintirile pleacă din cron, care n-are de unde s-o ştie.
-  let preferinta: 'fizic' | 'online' | null = null
-  if (webinar.format === 'hibrid') {
-    const { data } = await createAdminClient()
-      .from('registrations')
-      .select('attendance_preference')
-      .eq('contact_id', destinatar.contactId)
-      .eq('webinar_id', webinar.id)
-      .maybeSingle()
-    preferinta = (data?.attendance_preference as 'fizic' | 'online' | null) ?? null
-  }
 
   // La evenimentele online, locaţia era chiar linkul de intrare — ceea ce l-ar
   // fi strecurat în intrarea din calendar, deşi confirmarea nu-l mai conţine.
@@ -124,7 +112,6 @@ export async function trimiteSablon({
     siteUrl,
     unsubscribeUrl,
     calendarUrl: cuCalendar ? linkGoogleCalendar(optiuniIcs) : undefined,
-    preferinta,
   }
 
   const element = (() => {

@@ -74,7 +74,6 @@ export function pretInLei(bani: number) {
 export const ETICHETA_FORMAT: Record<string, string> = {
   online: 'Online',
   fizic: 'La fața locului',
-  hibrid: 'Online și la fața locului',
 }
 
 /**

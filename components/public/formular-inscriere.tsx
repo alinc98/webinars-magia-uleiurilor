@@ -14,8 +14,6 @@ type Props = {
   slug: string
   /** Textul acceptat, venit din admin cu versionare (brief §10). */
   textConsimtamant?: string
-  /** La `hibrid` se cere și modul de participare (brief §12.8). */
-  format: 'online' | 'fizic' | 'hibrid'
   eticheta?: string
 }
 
@@ -23,7 +21,6 @@ type Erori = Record<string, string>
 
 export function FormularInscriere({
   slug,
-  format,
   textConsimtamant,
   eticheta = 'Vreau să particip',
 }: Props) {
@@ -54,10 +51,6 @@ export function FormularInscriere({
       email: String(formData.get('email') ?? ''),
       phone: String(formData.get('phone') ?? ''),
       consent: formData.get('consent') === 'on',
-      attendance_preference:
-        format === 'hibrid'
-          ? (String(formData.get('attendance_preference') ?? '') as 'fizic' | 'online')
-          : undefined,
       website: String(formData.get('website') ?? ''),
       tracking: citesteTracking(new URLSearchParams(window.location.search), {
         referrer: document.referrer || undefined,
@@ -151,32 +144,6 @@ export function FormularInscriere({
         eroare={erori.phone}
       />
 
-      {format === 'hibrid' && (
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-body-sm text-text-body mb-1 font-medium">
-            Cum vrei să participi?
-          </legend>
-          <label className="text-body-sm flex items-center gap-2">
-            <input
-              type="radio"
-              name="attendance_preference"
-              value="fizic"
-              defaultChecked
-              className="accent-primary-800"
-            />
-            La fața locului
-          </label>
-          <label className="text-body-sm flex items-center gap-2">
-            <input
-              type="radio"
-              name="attendance_preference"
-              value="online"
-              className="accent-primary-800"
-            />
-            Online
-          </label>
-        </fieldset>
-      )}
 
       <BifaConsimtamant id="consent" name="consent" eroare={erori.consent}>
         {textConsimtamant ?? 'Sunt de acord cu prelucrarea datelor mele personale.'}{' '}

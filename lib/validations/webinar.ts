@@ -107,7 +107,7 @@ export const webinarSchema = z
         'Alege data și ora.',
       ),
     duration_min: z.coerce.number<number>().int().positive().max(1440),
-    format: z.enum(['online', 'fizic', 'hibrid']),
+    format: z.enum(['online', 'fizic']),
 
     join_url: optional(500),
     venue_name: optional(200),

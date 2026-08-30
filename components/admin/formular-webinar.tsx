@@ -36,7 +36,7 @@ export type ValoriWebinar = {
   faq?: { q: string; a: string }[]
   starts_at?: string
   duration_min?: number
-  format?: 'online' | 'fizic' | 'hibrid'
+  format?: 'online' | 'fizic'
   join_url?: string | null
   venue_name?: string | null
   address?: string | null
@@ -400,7 +400,7 @@ export function FormularWebinar({
         <fieldset>
           <legend className="mb-2 text-sm font-medium">Format</legend>
           <div className="flex flex-wrap gap-4">
-            {(['online', 'fizic', 'hibrid'] as const).map((v) => (
+            {(['online', 'fizic'] as const).map((v) => (
               <label key={v} className="flex items-center gap-2 text-sm">
                 <input
                   type="radio"
