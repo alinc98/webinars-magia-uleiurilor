@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils'
 
 const MINUTE = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+const ORE = Array.from({ length: 24 }, (_, h) => h)
 
 /**
  * Alegerea datei și orei unui eveniment.
@@ -42,14 +43,46 @@ export function SelectorDataOra({
 }) {
   const initial = valoare ? inOraRomaniei(new Date(valoare)) : null
 
-  const [ales, setAles] = useState<PartiOra | null>(initial)
+  // Ziua şi ora stau separat, nu într-un singur obiect.
+  //
+  // Prima variantă le ţinea împreună, iar listele de oră erau dezactivate până
+  // alegeai o zi — se vedea „19" şi nu răspundea la clic. Dar ora e o decizie
+  // de sine stătătoare: omul o schimbă întâi, sau o schimbă fără să se atingă
+  // de zi. Aşa, nimic nu e blocat niciodată.
+  const [zi, setZi] = useState<Omit<PartiOra, 'ora' | 'minut'> | null>(
+    initial ? { an: initial.an, luna: initial.luna, zi: initial.zi } : null
+  )
+  const [ora, setOra] = useState(initial?.ora ?? 19)
+  const [minut, setMinut] = useState(initial?.minut ?? 0)
+
+  const ales: PartiOra | null = zi ? { ...zi, ora, minut } : null
+
   const [deschis, setDeschis] = useState(false)
   const [luna, setLuna] = useState(() => {
-    const acum = ales ?? inOraRomaniei(new Date())
+    const acum = zi ?? inOraRomaniei(new Date())
     return { an: acum.an, luna: acum.luna }
   })
 
   const invelis = useRef<HTMLDivElement>(null)
+  const coloanaOre = useRef<HTMLDivElement>(null)
+  const coloanaMinute = useRef<HTMLDivElement>(null)
+
+  // La deschidere, aducem valoarea aleasă în mijlocul coloanei.
+  //
+  // `scrollTop` calculat, nu `scrollIntoView`: acela derulează şi pagina din
+  // spate, iar formularul îţi sare de sub ochi când deschizi calendarul.
+  useEffect(() => {
+    if (!deschis) return
+
+    for (const coloana of [coloanaOre, coloanaMinute]) {
+      const cutie = coloana.current
+      const activ = cutie?.querySelector<HTMLElement>('[data-ales="true"]')
+      if (cutie && activ) {
+        cutie.scrollTop =
+          activ.offsetTop - cutie.clientHeight / 2 + activ.clientHeight / 2
+      }
+    }
+  }, [deschis])
 
   useEffect(() => {
     if (!deschis) return
@@ -76,17 +109,6 @@ export function SelectorDataOra({
       if (l > 12) return { an: an + 1, luna: 1 }
       return { an, luna: l }
     })
-  }
-
-  function alegeZiua(zi: number) {
-    // Ora implicită la prima alegere: 19:00, cea mai obișnuită la webinarii.
-    setAles((curent) => ({
-      an: luna.an,
-      luna: luna.luna,
-      zi,
-      ora: curent?.ora ?? 19,
-      minut: curent?.minut ?? 0,
-    }))
   }
 
   const azi = inOraRomaniei(new Date())
@@ -161,7 +183,7 @@ export function SelectorDataOra({
                 <button
                   key={zi}
                   type="button"
-                  onClick={() => alegeZiua(zi)}
+                  onClick={() => setZi({ an: luna.an, luna: luna.luna, zi })}
                   aria-pressed={esteAles}
                   className={cn(
                     'h-8 rounded text-sm tabular-nums',
@@ -177,54 +199,98 @@ export function SelectorDataOra({
             })}
           </div>
 
-          <div className="border-admin-border mt-3 flex items-center gap-2 border-t pt-3">
-            <span className="text-text-muted text-xs">Ora</span>
-            <select
-              aria-label="Ora"
-              value={ales?.ora ?? 19}
-              disabled={!ales}
-              onChange={(ev) =>
-                setAles((c) => (c ? { ...c, ora: Number(ev.target.value) } : c))
-              }
-              className="border-input h-8 rounded-lg border bg-transparent px-2 text-sm tabular-nums"
-            >
-              {Array.from({ length: 24 }, (_, h) => (
-                <option key={h} value={h}>
-                  {String(h).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-            <span className="text-text-muted">:</span>
-            <select
-              aria-label="Minutul"
-              value={ales?.minut ?? 0}
-              disabled={!ales}
-              onChange={(ev) =>
-                setAles((c) => (c ? { ...c, minut: Number(ev.target.value) } : c))
-              }
-              className="border-input h-8 rounded-lg border bg-transparent px-2 text-sm tabular-nums"
-            >
-              {MINUTE.map((m) => (
-                <option key={m} value={m}>
-                  {String(m).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
+          {/* Coloane derulabile, nu `<select>`.
+              Lista unui `select` o desenează sistemul de operare: altă
+              tipografie, altă culoare, alt colţ rotunjit — exact contrastul pe
+              care l-am scos de la calendar. Şi un meniu nativ se deschide
+              peste panou, în afara lui, unde clicul îl închide. */}
+          <div className="border-admin-border mt-3 grid grid-cols-2 gap-2 border-t pt-3">
+            <Coloana
+              eticheta="Ora"
+              valori={ORE}
+              ales={ora}
+              alege={setOra}
+              ref={coloanaOre}
+            />
+            <Coloana
+              eticheta="Minutul"
+              valori={MINUTE}
+              ales={minut}
+              alege={setMinut}
+              ref={coloanaMinute}
+            />
+          </div>
 
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <p className="text-text-muted text-[11px]">
+              Ora României, oriunde ai fi.
+            </p>
             <button
               type="button"
               onClick={() => setDeschis(false)}
-              className="text-primary-800 ml-auto text-sm font-medium"
+              className="text-primary-800 text-sm font-medium"
             >
               Gata
             </button>
           </div>
 
-          <p className="text-text-muted mt-2 text-[11px]">
-            Ora României, indiferent de unde completezi.
-          </p>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * O coloană derulabilă de valori, în locul listei native.
+ *
+ * `relative` pe cutie nu e decor: fără el, `offsetParent` al butoanelor e
+ * panoul întreg, iar `offsetTop` folosit la derulare dă poziţia faţă de acela.
+ * Coloana sărea la fund în loc să centreze valoarea aleasă.
+ */
+function Coloana({
+  eticheta,
+  valori,
+  ales,
+  alege,
+  ref,
+}: {
+  eticheta: string
+  valori: number[]
+  ales: number
+  alege: (v: number) => void
+  ref: React.RefObject<HTMLDivElement | null>
+}) {
+  return (
+    <div>
+      <p className="text-text-muted mb-1 text-[11px]">{eticheta}</p>
+      <div
+        ref={ref}
+        role="listbox"
+        aria-label={eticheta}
+        className="border-admin-border relative h-36 overflow-y-auto rounded-lg border p-1"
+      >
+        {valori.map((v) => {
+          const esteAles = v === ales
+          return (
+            <button
+              key={v}
+              type="button"
+              role="option"
+              aria-selected={esteAles}
+              data-ales={esteAles}
+              onClick={() => alege(v)}
+              className={cn(
+                'block w-full rounded px-2 py-1 text-center text-sm tabular-nums',
+                esteAles
+                  ? 'bg-primary-800 font-semibold text-white'
+                  : 'hover:bg-admin-row-alt'
+              )}
+            >
+              {String(v).padStart(2, '0')}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
