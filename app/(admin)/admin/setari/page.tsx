@@ -62,6 +62,8 @@ export default async function Page() {
               ['Webhook Resend', 'RESEND_WEBHOOK_SECRET'],
               ['Meta Pixel', 'META_PIXEL_ID'],
               ['Meta Conversions API', 'META_CAPI_TOKEN'],
+              ['Google Analytics', 'NEXT_PUBLIC_GA4_ID'],
+              ['GA4 Measurement Protocol', 'GA4_API_SECRET'],
               ['Secret cron', 'CRON_SECRET'],
             ].map(([eticheta, nume]) => (
               <div key={nume} className="flex items-center justify-between gap-4">
