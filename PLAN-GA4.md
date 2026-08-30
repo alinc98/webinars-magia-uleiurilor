@@ -202,6 +202,22 @@ Toate cu domeniul *Event*, din **Admin → Custom definitions → Create custom 
 doua dimensiune pentru același lucru ar consuma un loc degeaba. Rămâne util doar în
 DebugView, unde e mai ușor de citit decât slug-ul.
 
+### Nu le poți crea înainte ca GA4 să fi văzut parametrul
+
+Verificat pe 30 august 2026: câmpul **Event parameter** din formular acceptă doar nume pe
+care GA4 le-a procesat deja. Tastarea unui nume nou nu ajută — nu-l oferă ca opțiune.
+
+Iar lista aceea se construiește din date **procesate**, nu din Realtime. Evenimentele apar
+în Realtime în câteva secunde, dar în meniul de dimensiuni pot întârzia până la 24 de ore.
+
+Consecința practică, în ordine:
+
+1. Se declanșează măcar o dată fiecare eveniment, cu toți parametrii lui. Atenție la două
+   dintre ele, care nu apar de la sine: `locuri_ramase` cere un eveniment cu capacitate
+   setată, iar `metoda` cere un clic pe un buton de calendar, de pe pagina de mulțumire.
+2. Se așteaptă procesarea — o zi, ca să fim liniștiți.
+3. Abia atunci se creează cele cinci dimensiuni.
+
 ### De ce contează *când* le declari
 
 **Nu funcționează retroactiv.** O dimensiune creată azi arată date de azi înainte; tot ce a
@@ -212,8 +228,8 @@ Consecința pentru calendar: **se declară înainte de prima campanie plătită*
 primele două săptămâni de trafic — exact cele pe care le analizezi ca să decizi dacă merită
 continuat — rămân un număr total, fără nicio defalcare.
 
-Practic, pasul ăsta se face imediat după faza 3, când numele parametrilor sunt fixate, și
-oricum înainte de a porni bugetul.
+Practic: după faza 3 se fac câteva vizite şi o înscriere de probă, ca parametrii să ajungă
+în GA4; a doua zi se creează dimensiunile; abia apoi se pornește bugetul.
 
 ---
 
