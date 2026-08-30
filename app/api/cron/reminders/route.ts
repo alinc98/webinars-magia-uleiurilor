@@ -12,11 +12,10 @@ type Revendicare = {
   registration_id: string
   contact_id: string
   webinar_id: string
-  attended?: boolean
 }
 
 /**
- * Cron-ul de remindere și follow-up-uri.
+ * Cron-ul de remindere.
  *
  * Rulat din GitHub Actions din 15 în 15 minute, nu din Vercel Cron: planul
  * Hobby permite o singură rulare pe zi (PLAN.md §2.1).
@@ -36,13 +35,19 @@ export async function POST(request: Request) {
   // a furnizorului de email într-o singură rulare (PLAN.md §2.3).
   const limita = Number(process.env.CRON_BATCH_LIMIT ?? 60)
 
-  const [r24, rScurt, rFollowup] = await Promise.all([
+  // Mesajele de după eveniment nu se mai trimit automat — decizia clientei.
+  //
+  // Rămân şablonul, funcţia `claim_followups` din bază şi coloana
+  // `followup_sent_at`: nu costă nimic şi fac repornirea o chestiune de un
+  // rând aici, nu o migraţie. Cine reactivează să citească întâi
+  // `emails/followup.tsx` — textul promite un bonus pe care nimic nu-l
+  // livrează.
+  const [r24, rScurt] = await Promise.all([
     supabase.rpc('claim_reminders_24h', { p_limit: limita }),
     supabase.rpc('claim_reminders_short', { p_limit: limita }),
-    supabase.rpc('claim_followups', { p_limit: limita }),
   ])
 
-  // Nu ieșim aici, chiar dacă una din cele trei a picat.
+  // Nu ieșim aici, chiar dacă una dintre ele a picat.
   //
   // Revendicarea marchează rândurile *înainte* de trimitere, ca o rulare
   // repetată să nu trimită de două ori. Consecința e că un `return` în acest
@@ -51,16 +56,13 @@ export async function POST(request: Request) {
   // pleacă niciodată, și nimeni nu află.
   //
   // Deci trimitem ce s-a revendicat şi raportăm eroarea după.
-  const erori = [r24, rScurt, rFollowup]
+  const erori = [r24, rScurt]
     .map((r) => r.error?.message)
     .filter((m): m is string => Boolean(m))
 
   const raport = {
-    reminder_24h: await trimiteLot((r24.data ?? []) as Revendicare[], () => 'reminder_24h'),
-    reminder_scurt: await trimiteLot((rScurt.data ?? []) as Revendicare[], () => 'reminder_scurt'),
-    followup: await trimiteLot((rFollowup.data ?? []) as Revendicare[], (r) =>
-      r.attended ? 'followup_prezent' : 'followup_absent'
-    ),
+    reminder_24h: await trimiteLot((r24.data ?? []) as Revendicare[], 'reminder_24h'),
+    reminder_scurt: await trimiteLot((rScurt.data ?? []) as Revendicare[], 'reminder_scurt'),
   }
 
   if (erori.length > 0) {
@@ -78,7 +80,7 @@ export async function POST(request: Request) {
 
 async function trimiteLot(
   revendicari: Revendicare[],
-  alegeSablon: (r: Revendicare) => 'reminder_24h' | 'reminder_scurt' | 'followup_prezent' | 'followup_absent'
+  sablon: 'reminder_24h' | 'reminder_scurt'
 ) {
   let trimise = 0
   let esuate = 0
@@ -113,11 +115,7 @@ async function trimiteLot(
       return
     }
 
-    const rezultat = await trimiteSablon({
-      sablon: alegeSablon(revendicare),
-      destinatar,
-      webinar,
-    })
+    const rezultat = await trimiteSablon({ sablon, destinatar, webinar })
 
     if (rezultat.ok) trimise += 1
     else if (rezultat.motiv === 'dezabonat') sarite += 1
