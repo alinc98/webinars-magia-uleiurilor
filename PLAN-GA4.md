@@ -1,67 +1,48 @@
 # GA4 pe platforma de webinarii
 
 Există deja o proprietate GA4 pentru `magia-uleiurilor.ro`, pusă prin GTM pe site-ul
-WordPress. Planul de aici aduce subdomeniul `webinar.magia-uleiurilor.ro` în măsurare, cu
-consimțământ corect și cu evenimente care spun ceva despre înscrieri, nu doar despre
-pagini vizitate.
+WordPress. Planul de aici aduce subdomeniul `webinar.magia-uleiurilor.ro` în aceeași
+proprietate, cu consimțământ corect și cu evenimente care spun ceva despre înscrieri, nu
+doar despre pagini vizitate.
 
 Aproximativ două zile de programare, plus configurarea din interfața GA4.
 
 ---
 
-## 1. Proprietate nouă sau aceeași?
+## 1. Deciziile luate
 
-Întrebarea e reală și merită un răspuns, nu o preferință.
+### Aceeași proprietate, același Measurement ID
 
-### Ce câștigi cu o proprietate separată
+Nu creăm una nouă și nu creăm un flux de date nou. Se ia `G-XXXXXXXXXX` din fluxul
+existent și se folosește și aici.
 
-Rapoartele webinariilor nu se amestecă cu ale magazinului. Evenimentele-cheie sunt doar
-ale tale, dimensiunile personalizate la fel — limita de 50 per proprietate nu se împarte
-cu WooCommerce. Poți da acces cuiva doar la partea asta.
+Motivul: webinariile nu sunt un produs, sunt intrarea în pâlnie. Cineva vine din reclamă pe
+pagina unui webinar, se înscrie, iar peste trei săptămâni cumpără din magazin. Într-o
+singură proprietate, drumul acela se vede. În două, sunt doi oameni fără nicio legătură.
 
-### Ce pierzi, și cred că e mai mult
+Subdomeniile împart cookie-ul cu domeniul rădăcină, deci trecerea de pe site-ul mare pe
+subdomeniu continuă aceeași sesiune, cu sursa inițială. Nu e nevoie de configurare de
+măsurare între domenii — aceea e pentru domenii diferite.
 
-Drumul dintre cele două. Cineva ajunge din reclamă pe pagina unui webinar, se înscrie,
-iar peste trei săptămâni cumpără din magazin. **Cu o proprietate separată, întrebarea
-„câți dintre cei înscriși au cumpărat până la urmă" nu are răspuns** — sunt doi oameni
-diferiți, în două conturi diferite, fără nicio cale de a-i lipi.
-
-Or ăsta e chiar rostul webinariilor. Nu sunt un produs, sunt intrarea în pâlnie. O
-măsurare care taie pâlnia în două măsoară exact lucrul greșit.
-
-Se mai pierd: atribuirea corectă la trecerea între domenii (subdomeniile împart cookie-ul,
-deci într-o singură proprietate sesiunea continuă cu sursa inițială), și audiențele pentru
-Google Ads care ar acoperi ambele zone.
-
-### Ce recomand
-
-**Aceeași proprietate, același Measurement ID** — dar cu separarea pe care o vrei,
-obținută altfel.
+### Separarea rapoartelor se face pe `hostname`
 
 `hostname` e o dimensiune pe care GA4 o are din start. O comparație salvată pe
-`webinar.magia-uleiurilor.ro` îți dă exact rapoartele separate, în toate ecranele, fără să
-rupi datele. Practic ai și vederea separată, și pe cea comună — nu trebuie să alegi.
+`webinar.magia-uleiurilor.ro` dă rapoartele separate în toate ecranele standard, fără să
+rupă datele.
 
-Se face din **Reports → butonul de comparație**, sau ca explorare salvată cu același filtru.
+Se face din **Reports → butonul de comparație → Add comparison**, condiție
+`Hostname` `exactly matches` `webinar.magia-uleiurilor.ro`. Merită salvată, ca să fie la un
+clic distanță.
 
-### Dacă tot vrei o proprietate dedicată
+Două lucruri de știut despre ea:
 
-Există și o cale de mijloc: `gtag` acceptă mai multe destinații, deci se poate trimite
-simultan în ambele proprietăți. Ai una dedicată webinariilor și o păstrezi și pe cea
-comună întreagă.
+- Comparațiile se aplică rapoartelor standard. În **Explore**, filtrul se pune separat, în
+  fiecare explorare.
+- Comparația filtrează *sesiuni*, nu evenimente. O sesiune care începe pe magazin și
+  continuă pe subdomeniu apare în ambele vederi. E corect — chiar asta vrei să vezi — dar
+  explică de ce numerele nu se adună exact.
 
-Costul: dublezi evenimentele trimise, ai două seturi de configurări de întreținut, și
-două locuri unde poate să-ți scape ceva. E o linie de cod în plus, dar de două ori mai
-multă întreținere. Aș face-o doar dacă cineva din afară trebuie să vadă doar webinariile.
-
-**De verificat oricum:** adaugă `magia-uleiurilor.ro` în lista de *unwanted referrals* din
-proprietate. Altfel, cine trece de pe site-ul mare pe subdomeniu pornește o sesiune nouă
-cu sursa „magia-uleiurilor.ro" — și pierzi exact atribuirea pentru care ai vrut o singură
-proprietate.
-
----
-
-## 2. Direct în cod, nu prin GTM
+### Direct în cod, nu prin GTM
 
 Pe WordPress, GTM are sens: oameni care adaugă tag-uri fără să atingă codul. Aici ar fi un
 al doilea container de întreținut, încă un script încărcat și încă o integrare cu bannerul
@@ -70,6 +51,38 @@ de cookie-uri.
 Platforma are deja tiparul: pixelul Meta se montează din cod, condiționat de consimțământ,
 versionat în depozit. GA4 intră pe același drum. Dacă vrei vreodată tag-uri fără deploy,
 GTM se poate adăuga peste, mai târziu.
+
+---
+
+## 2. Ce trebuie verificat înainte, tocmai pentru că e aceeași proprietate
+
+Astea trei n-ar fi contat cu o proprietate separată. Acum contează.
+
+### Numele evenimentelor nu trebuie să se ciocnească
+
+Dacă site-ul mare trimite deja `generate_lead` — dintr-un formular de contact, dintr-un
+plugin — atunci înscrierile la webinarii s-ar amesteca cu lead-urile magazinului sub același
+nume.
+
+Deschide **Admin → Events** și uită-te ce nume există deja. Dacă `generate_lead` e liber,
+îl folosim. Dacă nu, înscrierea devine `inscriere_webinar`, care poate purta la fel de bine
+`value` și `currency`.
+
+Contează mai mult decât pare: **evenimentele-cheie sunt la nivel de proprietate și nu se pot
+filtra pe hostname.** Dacă imporți `generate_lead` în Google Ads ca o conversie, intră și
+lead-urile de pe site-ul mare, oricâte comparații ai salva.
+
+### Limita de dimensiuni personalizate se împarte
+
+50 de dimensiuni la nivel de eveniment, pe toată proprietatea. Noi cerem cinci. Verifică în
+**Admin → Custom definitions** câte sunt deja folosite.
+
+### Referințele nedorite
+
+Adaugă `magia-uleiurilor.ro` în lista de *unwanted referrals*, în setările fluxului de
+date. Altfel, cine trece de pe site-ul mare pe subdomeniu pornește o sesiune nouă cu sursa
+„magia-uleiurilor.ro" — și pierzi exact atribuirea pentru care ai ales o singură
+proprietate.
 
 ---
 
@@ -98,6 +111,10 @@ Cu refuz, GA4 tot trimite semnale fără cookie-uri și estimează statistic ce 
 Consent Mode, cine refuză dispare complet din rapoarte — iar în România refuză destui cât
 să conteze.
 
+Verifică și ce face GTM-ul de pe site-ul mare: dacă acolo Consent Mode nu e pus, cele două
+jumătăți ale proprietății se vor comporta diferit, iar comparațiile pe hostname vor părea
+inexplicabile.
+
 ---
 
 ## 4. Ce măsurăm
@@ -119,6 +136,9 @@ făcute. Parametrii sunt ai noștri.
 `generate_lead`, nu `sign_up`: primul acceptă `value` și `currency`. La evenimentele cu
 preț trimitem suma reală; la cele gratuite, o valoare convenită de tine — altfel toate
 înscrierile cântăresc la fel și campaniile n-au după ce să optimizeze.
+
+Numele rămâne `generate_lead` **doar dacă e liber în proprietate** — vezi verificarea de la
+punctul 2.
 
 > **Parametrii nu apar singuri în rapoarte.** Fiecare trebuie declarat ca dimensiune
 > personalizată, în **Admin → Custom definitions**. Până atunci sunt trimiși și stocați,
@@ -163,13 +183,13 @@ consimțământ pe `denied`, încarcă `gtag` și le actualizează la răspunsul
 
 **3. Înscrierea** — o jumătate de zi
 
-`generate_lead` cu valoare, în același loc unde pleacă acum `Lead` către Meta. Plus
+Evenimentul de lead cu valoare, în același loc unde pleacă acum `Lead` către Meta. Plus
 `join_waitlist` și `request_replay`.
 
 **4. Configurarea din interfața GA4** — o oră, dar cu răbdare
 
-Dimensiunile personalizate, marcarea lui `generate_lead` ca eveniment-cheie, lista de
-*unwanted referrals*, comparația salvată pe `hostname`, și verificarea că măsurarea
+Cele trei verificări de la punctul 2, dimensiunile personalizate, marcarea evenimentului de
+lead ca eveniment-cheie, comparația salvată pe `hostname`, și verificarea că măsurarea
 îmbunătățită nu trimite deja `form_start` pe cont propriu — altfel îl ai de două ori.
 
 **5. Measurement Protocol** — o zi, opțional
@@ -194,8 +214,11 @@ Lista scurtă, după implementare:
   semnalele fără el.
 - Accepți → `page_view` pe pagina cu lista, apoi încă unul pe pagina unei întâlniri, la
   navigare.
-- Te înscrii → un singur `generate_lead`, cu valoarea corectă la un eveniment cu preț.
+- Te înscrii → un singur eveniment de lead, cu valoarea corectă la un eveniment cu preț.
 - În Realtime, sursa vine din UTM-ul din link, nu din „magia-uleiurilor.ro".
+- Intri pe magazin, apoi pe subdomeniu → o singură sesiune, nu două.
+
+Ultimul e testul care spune dacă alegerea unei singure proprietăți a meritat.
 
 ---
 
