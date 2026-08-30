@@ -19,6 +19,7 @@ import { Poza } from '@/components/brand/poza'
 import { FormularInscriere } from '@/components/public/formular-inscriere'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
 import { UrmareteViewContent } from '@/components/public/meta-pixel'
+import { UrmaresteEveniment } from '@/components/public/urmareste-eveniment'
 import { getTextConsimtamant } from '@/lib/consimtamant-server'
 import { openGraph } from '@/lib/seo'
 import {
@@ -92,6 +93,14 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   // „cu plată, fără preț".
   const pret = webinar.price_bani ?? null
 
+  const dateGa4 = {
+    slug,
+    titlu: webinar.title ?? '',
+    format,
+    pretBani: pret,
+    locuriRamase: webinar.seats_left,
+  }
+
   const puncte = (webinar.learning_points as string[] | null) ?? []
   const pentruCine = (webinar.for_whom as string[] | null) ?? []
   const faq = (webinar.faq as { q: string; a: string }[] | null) ?? []
@@ -118,6 +127,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   return (
     <div className="bg-brand-bg text-text-body font-body">
       <UrmareteViewContent />
+      <UrmaresteEveniment date={dateGa4} />
       <BaraSticky
         startsAt={webinar.starts_at!}
         format={format}
@@ -431,6 +441,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
               <div className="mt-6">
                 <FormularInscriere
                   slug={slug}
+                  dateGa4={dateGa4}
                   textConsimtamant={textConsimtamant?.body}
                 />
               </div>

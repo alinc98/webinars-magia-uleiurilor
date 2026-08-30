@@ -7,11 +7,14 @@ import { BifaConsimtamant, Camp } from '@/components/brand/campuri'
 import { Buton } from '@/components/brand/buton'
 import { trimiteLeadPixel } from '@/components/public/meta-pixel'
 import { LINKURI } from '@/lib/linkuri'
+import { inscriereReusita, type DateEvenimentGa4 } from '@/lib/ga4'
 import { citesteTracking } from '@/lib/utm'
 import { inscriereSchema } from '@/lib/validations/inscriere'
 
 type Props = {
   slug: string
+  /** Ce raportăm către GA4 la înscriere reușită. */
+  dateGa4: DateEvenimentGa4
   /** Textul acceptat, venit din admin cu versionare (brief §10). */
   textConsimtamant?: string
   eticheta?: string
@@ -21,6 +24,7 @@ type Erori = Record<string, string>
 
 export function FormularInscriere({
   slug,
+  dateGa4,
   textConsimtamant,
   eticheta = 'Vreau să particip',
 }: Props) {
@@ -88,6 +92,7 @@ export function FormularInscriere({
       // Pixelul e montat doar dacă vizitatorul a acceptat cookie-urile; dacă
       // nu, apelul e inofensiv și rămâne doar semnalul de server.
       trimiteLeadPixel(eventId)
+      inscriereReusita(dateGa4)
 
       router.push(`/inscriere-confirmata?w=${encodeURIComponent(slug)}`)
     } catch {

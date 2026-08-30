@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { intratPeListaAsteptare } from '@/lib/ga4'
 import { LINKURI } from '@/lib/linkuri'
 import { citesteTracking } from '@/lib/utm'
 import { listaAsteptareSchema } from '@/lib/validations/inscriere'
@@ -69,6 +70,7 @@ export function FormularListaAsteptare({
         return
       }
 
+      intratPeListaAsteptare(webinarSlug)
       setStare('gata')
     } catch {
       setEroareGenerala('Nu am putut trimite formularul. Verifică conexiunea.')

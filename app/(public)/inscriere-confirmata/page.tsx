@@ -3,6 +3,7 @@ import Image from 'next/image'
 
 import { Fisa, Titlu2 } from '@/components/brand/bucati'
 import { ButonLink } from '@/components/brand/buton'
+import { ButoaneCalendar } from '@/components/public/butoane-calendar'
 import { Ornament } from '@/components/brand/ornament'
 import { ETICHETA_FORMAT, formateazaDataOra } from '@/lib/format'
 import { linkGoogleCalendar } from '@/lib/ics'
@@ -81,31 +82,16 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
                   Adaugă în calendar
                 </p>
 
-                {/* `whitespace-nowrap` şi eticheta scurtă merg împreună: fără ele,
-                    „Adaugă în Google Calendar" trecea pe două rânduri în jumătatea
-                    lui de lăţime, iar al doilea rând rămânea lipit de stânga. */}
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                  <a
-                    href={linkGoogleCalendar({
-                      uid: `${webinar.id}@magia-uleiurilor.ro`,
-                      title: webinar.title!,
-                      startsAt: webinar.starts_at,
-                      durationMin: webinar.duration_min ?? 60,
-                      location: locatie,
-                    })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="border-primary-800 text-primary-800 hover:bg-primary-50 min-h-touch inline-flex flex-1 items-center justify-center rounded-full border-[1.5px] px-6 text-center font-semibold whitespace-nowrap"
-                  >
-                    Google Calendar
-                  </a>
-                  <a
-                    href={`/api/calendar/${webinar.slug}`}
-                    className="border-brand-border text-text-muted hover:bg-surface min-h-touch inline-flex flex-1 items-center justify-center rounded-full border px-6 text-center font-medium whitespace-nowrap"
-                  >
-                    Alt calendar (.ics)
-                  </a>
-                </div>
+                <ButoaneCalendar
+                  linkGoogle={linkGoogleCalendar({
+                    uid: `${webinar.id}@magia-uleiurilor.ro`,
+                    title: webinar.title!,
+                    startsAt: webinar.starts_at,
+                    durationMin: webinar.duration_min ?? 60,
+                    location: locatie,
+                  })}
+                  linkIcs={`/api/calendar/${webinar.slug}`}
+                />
               </div>
             </>
           )}
