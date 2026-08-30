@@ -58,6 +58,12 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
         >
           Vezi înscrișii
         </Link>
+        <Link
+          href={`/admin/webinarii/${webinar.id}/prezenta`}
+          className="text-sm underline underline-offset-4"
+        >
+          Prezență
+        </Link>
       </Antet>
 
       <EditorWebinar
