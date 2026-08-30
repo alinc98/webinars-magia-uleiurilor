@@ -70,6 +70,8 @@ export const inscriereSchema = z.object({
   consent: consimtamant,
   website: honeypot,
   tracking: trackingSchema,
+  /** `client_id` GA4, pentru Measurement Protocol. Lipseşte fără consimţământ. */
+  ga_client_id: z.string().max(60).optional(),
 })
 
 export const listaAsteptareSchema = z.object({

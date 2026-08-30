@@ -294,6 +294,7 @@ export type Database = {
           contact_id: string
           fbclid: string | null
           followup_sent_at: string | null
+          ga_client_id: string | null
           id: string
           kind: Database["public"]["Enums"]["registration_kind"]
           landing_page: string | null
@@ -314,6 +315,7 @@ export type Database = {
           contact_id: string
           fbclid?: string | null
           followup_sent_at?: string | null
+          ga_client_id?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["registration_kind"]
           landing_page?: string | null
@@ -334,6 +336,7 @@ export type Database = {
           contact_id?: string
           fbclid?: string | null
           followup_sent_at?: string | null
+          ga_client_id?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["registration_kind"]
           landing_page?: string | null

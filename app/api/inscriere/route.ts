@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     consent,
     tracking,
     event_id,
+    ga_client_id,
   } = cerere.date
 
   // Versiunea textului acceptat se salvează pe contact: dacă textul se
@@ -67,6 +68,19 @@ export async function POST(request: Request) {
     reason?: string
     contact_id?: string
     webinar_id?: string
+    registration_id?: string
+  }
+
+  // Într-o scriere separată, nu prin RPC: funcţia are deja zece parametri, iar
+  // ăsta e o unealtă de măsurare, nu o parte din înscriere. Dacă pică, omul
+  // rămâne înscris — doar prezenţa lui nu va ajunge mai târziu în GA4.
+  if (rezultat.ok && rezultat.registration_id && ga_client_id) {
+    const { error: eroareGa } = await supabase
+      .from('registrations')
+      .update({ ga_client_id })
+      .eq('id', rezultat.registration_id)
+
+    if (eroareGa) console.error('Nu am putut salva client_id GA4:', eroareGa.message)
   }
 
   if (!rezultat.ok) {

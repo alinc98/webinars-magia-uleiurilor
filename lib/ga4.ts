@@ -69,3 +69,27 @@ export function intratPeListaAsteptare(slug?: string) {
 export function adaugatInCalendar(metoda: 'google' | 'ics') {
   trimite('add_to_calendar', { metoda })
 }
+
+/**
+ * `client_id`-ul lui GA4, citit din cookie-ul `_ga`.
+ *
+ * Cookie-ul arată aşa: `GA1.1.1234567890.1234567890`. Identificatorul e
+ * format din ultimele două segmente — primele două spun doar versiunea şi
+ * adâncimea domeniului.
+ *
+ * Lipseşte când omul n-a acceptat cookie-urile: atunci gtag nu pune nimic. E
+ * corect aşa, iar apelantul trebuie să ştie să meargă mai departe fără el.
+ */
+export function clientIdGa4(): string | undefined {
+  if (typeof document === 'undefined') return undefined
+
+  const brut = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith('_ga='))
+    ?.slice(4)
+
+  if (!brut) return undefined
+
+  const parti = brut.split('.')
+  return parti.length >= 4 ? parti.slice(-2).join('.') : undefined
+}

@@ -7,7 +7,11 @@ import { BifaConsimtamant, Camp } from '@/components/brand/campuri'
 import { Buton } from '@/components/brand/buton'
 import { trimiteLeadPixel } from '@/components/public/meta-pixel'
 import { LINKURI } from '@/lib/linkuri'
-import { inscriereReusita, type DateEvenimentGa4 } from '@/lib/ga4'
+import {
+  clientIdGa4,
+  inscriereReusita,
+  type DateEvenimentGa4,
+} from '@/lib/ga4'
 import { citesteTracking } from '@/lib/utm'
 import { inscriereSchema } from '@/lib/validations/inscriere'
 
@@ -56,6 +60,9 @@ export function FormularInscriere({
       phone: String(formData.get('phone') ?? ''),
       consent: formData.get('consent') === 'on',
       website: String(formData.get('website') ?? ''),
+      // Ca să putem trimite mai târziu prezența de pe server, către aceeaşi
+      // persoană. Lipseşte dacă n-a acceptat cookie-urile.
+      ga_client_id: clientIdGa4(),
       tracking: citesteTracking(new URLSearchParams(window.location.search), {
         referrer: document.referrer || undefined,
         landingPage: window.location.pathname,
