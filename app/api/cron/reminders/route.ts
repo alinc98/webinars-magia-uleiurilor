@@ -42,12 +42,18 @@ export async function POST(request: Request) {
     supabase.rpc('claim_followups', { p_limit: limita }),
   ])
 
-  for (const rezultat of [r24, rScurt, rFollowup]) {
-    if (rezultat.error) {
-      console.error('Revendicarea a eșuat:', rezultat.error.message)
-      return NextResponse.json({ ok: false, error: rezultat.error.message }, { status: 500 })
-    }
-  }
+  // Nu ieșim aici, chiar dacă una din cele trei a picat.
+  //
+  // Revendicarea marchează rândurile *înainte* de trimitere, ca o rulare
+  // repetată să nu trimită de două ori. Consecința e că un `return` în acest
+  // punct aruncă la gunoi loturile care au reușit: rândurile lor sunt deja
+  // marcate ca trimise, iar rularea următoare nu le mai vede. Reamintirea nu
+  // pleacă niciodată, și nimeni nu află.
+  //
+  // Deci trimitem ce s-a revendicat şi raportăm eroarea după.
+  const erori = [r24, rScurt, rFollowup]
+    .map((r) => r.error?.message)
+    .filter((m): m is string => Boolean(m))
 
   const raport = {
     reminder_24h: await trimiteLot((r24.data ?? []) as Revendicare[], () => 'reminder_24h'),
@@ -55,6 +61,16 @@ export async function POST(request: Request) {
     followup: await trimiteLot((rFollowup.data ?? []) as Revendicare[], (r) =>
       r.attended ? 'followup_prezent' : 'followup_absent'
     ),
+  }
+
+  if (erori.length > 0) {
+    console.error('Revendicarea a eșuat parțial:', erori.join(' · '))
+    // 500, ca rularea din GitHub să iasă roșie: ce s-a revendicat a plecat,
+    // dar restul trebuie reîncercat, iar o rulare verde n-ar spune nimănui.
+    return NextResponse.json(
+      { ok: false, error: erori.join(' · '), ...raport },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ ok: true, ...raport })
@@ -73,6 +89,19 @@ async function trimiteLot(
   const webinare = new Map<string, Awaited<ReturnType<typeof getWebinarPentruEmail>>>()
 
   for (const revendicare of revendicari) {
+    try {
+      await unul(revendicare)
+    } catch (eroare) {
+      // Acelaşi motiv ca mai sus: rândul e deja marcat, deci o excepţie
+      // aruncată aici ar face restul lotului să dispară odată cu ea.
+      console.error('Trimitere eșuată pentru o revendicare:', eroare)
+      esuate += 1
+    }
+  }
+
+  return { trimise, esuate, sarite }
+
+  async function unul(revendicare: Revendicare) {
     if (!webinare.has(revendicare.webinar_id)) {
       webinare.set(revendicare.webinar_id, await getWebinarPentruEmail(revendicare.webinar_id))
     }
@@ -81,7 +110,7 @@ async function trimiteLot(
 
     if (!webinar || !destinatar) {
       esuate += 1
-      continue
+      return
     }
 
     const rezultat = await trimiteSablon({
@@ -94,6 +123,4 @@ async function trimiteLot(
     else if (rezultat.motiv === 'dezabonat') sarite += 1
     else esuate += 1
   }
-
-  return { trimise, esuate, sarite }
 }

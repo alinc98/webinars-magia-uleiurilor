@@ -21,15 +21,25 @@ jobs:
   trimite:
     runs-on: ubuntu-latest
     steps:
+      # Trei încercări, nu una.
+      #
+      # Supabase respinge din când în când cheia cu „JWT issued at future" —
+      # o eroare trecătoare, care nu ţine de datele noastre. Reîncercarea e
+      # inofensivă: revendicarea marchează rândurile înainte de trimitere,
+      # deci a doua încercare ia doar ce a rămas nerevendicat, niciodată acelaşi
+      # destinatar de două ori.
       - name: Declanșează cron-ul
         run: |
-          cod=$(curl -sS -o /tmp/raspuns.json -w '%{http_code}' \
-            -X POST "${{ secrets.SITE_URL }}/api/cron/reminders" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            --max-time 120)
-          cat /tmp/raspuns.json
-          echo
-          if [ "$cod" != "200" ]; then
-            echo "::error::Cron-ul a răspuns $cod"
-            exit 1
-          fi
+          for incercare in 1 2 3; do
+            cod=$(curl -sS -o /tmp/raspuns.json -w '%{http_code}' \
+              -X POST "${{ secrets.SITE_URL }}/api/cron/reminders" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              --max-time 120)
+            cat /tmp/raspuns.json
+            echo
+            [ "$cod" = "200" ] && exit 0
+            echo "::warning::Încercarea $incercare a răspuns $cod"
+            sleep $((incercare * 10))
+          done
+          echo "::error::Cron-ul a răspuns $cod după trei încercări"
+          exit 1
