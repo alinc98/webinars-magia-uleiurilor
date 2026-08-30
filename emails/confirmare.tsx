@@ -100,27 +100,25 @@ export function EmailConfirmare({
         </>
       )}
 
-      {arataOnline && webinar.joinUrl && (
-        <>
-          <Paragraf>
-            {alesOnline
-              ? 'Ai ales să participi online. În ziua evenimentului te poți conecta folosind butonul de mai jos.'
-              : 'Evenimentul are loc online. În ziua evenimentului te poți conecta folosind butonul de mai jos.'}
-          </Paragraf>
-          <Buton href={webinar.joinUrl}>Intră la eveniment</Buton>
-          <Discret>
-            Linkul funcționează în ziua evenimentului. Ți-l retrimitem cu o oră
-            înainte, ca să nu-l cauți prin inbox.
-          </Discret>
-        </>
+      {/* Fără linkul de intrare aici, dinadins. Pleacă doar cu reamintirile,
+          ca omul să-l aibă la îndemână atunci când îi trebuie şi să nu se
+          piardă într-un email citit cu trei săptămâni înainte. */}
+      {arataOnline && (
+        <Paragraf>
+          {alesOnline
+            ? 'Ai ales să participi online.'
+            : 'Evenimentul are loc online.'}{' '}
+          Linkul de intrare îți vine pe email cu o zi înainte, și încă o dată cu
+          o oră înainte de început.
+        </Paragraf>
       )}
 
       {/* Plasa de siguranță la hibrid: cealaltă cale, discret, nu ca a doua
           invitație de a alege. */}
       {alesFizic && webinar.joinUrl && (
         <Discret>
-          Dacă totuși nu poți ajunge, te poți conecta{' '}
-          <a href={webinar.joinUrl}>online, de aici</a>.
+          Dacă totuși nu poți ajunge, poți participa online — linkul vine odată
+          cu reamintirile.
         </Discret>
       )}
 

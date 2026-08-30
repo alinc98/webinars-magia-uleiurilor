@@ -95,15 +95,21 @@ export async function trimiteSablon({
     preferinta = (data?.attendance_preference as 'fizic' | 'online' | null) ?? null
   }
 
+  // La evenimentele online, locaţia era chiar linkul de intrare — ceea ce l-ar
+  // fi strecurat în intrarea din calendar, deşi confirmarea nu-l mai conţine.
+  // Linkul pleacă doar cu reamintirile.
   const locatie =
     webinar.format === 'online'
-      ? (webinar.joinUrl ?? undefined)
+      ? 'Online'
       : [webinar.venueName, webinar.address, webinar.city].filter(Boolean).join(', ')
 
   const optiuniIcs = {
     uid: `${webinar.id}@magia-uleiurilor.ro`,
     title: webinar.title,
-    description: `${webinar.title} — ${formateazaDataOra(webinar.startsAt)}`,
+    description:
+      webinar.format === 'online'
+        ? `${webinar.title} — ${formateazaDataOra(webinar.startsAt)}. Linkul de intrare vine pe email înainte de eveniment.`
+        : `${webinar.title} — ${formateazaDataOra(webinar.startsAt)}`,
     startsAt: webinar.startsAt,
     durationMin: webinar.durationMin,
     location: locatie,
