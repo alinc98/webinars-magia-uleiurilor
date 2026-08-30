@@ -97,10 +97,11 @@ Două consecinţe pentru plan:
   atingere a oricărui formular. Dacă l-am trimite şi noi, l-am avea de două ori pe aceeaşi
   interacţiune. Îl scoatem din lista noastră; se distinge oricum după hostname şi pagină.
 
-### Limita de dimensiuni personalizate se împarte
+### Limita de dimensiuni personalizate — verificat, e loc
 
-50 de dimensiuni la nivel de eveniment, pe toată proprietatea. Noi cerem cinci. Verifică în
-**Admin → Custom definitions** câte sunt deja folosite.
+50 la nivel de eveniment, pe toată proprietatea. Acum sunt declarate **zero**: magazinul
+folosește dimensiunile de comerț pe care GA4 le are construite deja, nu unele proprii. Noi
+cerem cinci. Detaliile, la punctul 5.
 
 ### Referințele nedorite
 
@@ -163,14 +164,60 @@ preț trimitem suma reală; la cele gratuite, o valoare convenită de tine — a
 
 `generate_lead` e liber în proprietate, verificat — deci rămâne numele.
 
-> **Parametrii nu apar singuri în rapoarte.** Fiecare trebuie declarat ca dimensiune
-> personalizată, în **Admin → Custom definitions**. Până atunci sunt trimiși și stocați,
-> dar invizibili — și se pierd zile căutându-i. Declararea populează rapoartele abia după
-> 24–48 de ore.
+---
+
+## 5. Dimensiunile personalizate
+
+Un parametru trimis de noi ajunge în GA4 și se stochează, dar **nu apare în rapoarte până
+nu e declarat**. Declararea e ce transformă un parametru într-o dimensiune după care poți
+filtra și grupa.
+
+Diferența, pe cazul nostru. Fără declarare, în rapoarte vezi atât:
+
+    generate_lead — 37
+
+Cu ea, poți desface numărul:
+
+    Kinder Fest Baia Mare      — 22
+    Training INTRO ONLINE      — 15
+
+Aceleași date au plecat în ambele cazuri. În primul sunt închise într-un sertar la care
+interfața n-are cheie.
+
+### Ce declarăm
+
+Toate cu domeniul *Event*, din **Admin → Custom definitions → Create custom dimension**.
+
+| Parametru | La ce întrebare răspunde |
+| --- | --- |
+| `webinar_slug` | Care eveniment aduce înscrieri și care nu |
+| `webinar_format` | Convertesc mai bine cele online sau cele pe viu |
+| `webinar_price` | Cât scad înscrierile când evenimentul costă |
+| `locuri_ramase` | Funcționează „au mai rămas 3 locuri" |
+| `metoda` | Google Calendar sau fișier, la adăugarea în calendar |
+
+`value` și `currency` nu se declară — GA4 le cunoaște din start.
+
+`webinar_title` se trimite, dar nu se declară. Slug-ul identifică deja evenimentul, iar o a
+doua dimensiune pentru același lucru ar consuma un loc degeaba. Rămâne util doar în
+DebugView, unde e mai ușor de citit decât slug-ul.
+
+### De ce contează *când* le declari
+
+**Nu funcționează retroactiv.** O dimensiune creată azi arată date de azi înainte; tot ce a
+fost trimis până atunci rămâne în sertarul închis, definitiv. Peste asta, mai trec 24–48 de
+ore până se populează rapoartele.
+
+Consecința pentru calendar: **se declară înainte de prima campanie plătită**, nu după. Altfel
+primele două săptămâni de trafic — exact cele pe care le analizezi ca să decizi dacă merită
+continuat — rămân un număr total, fără nicio defalcare.
+
+Practic, pasul ăsta se face imediat după faza 3, când numele parametrilor sunt fixate, și
+oricum înainte de a porni bugetul.
 
 ---
 
-## 5. Ce merge pe server și ce nu
+## 6. Ce merge pe server și ce nu
 
 Meta are Conversions API și îl folosim. GA4 are echivalentul, Measurement Protocol, dar cu
 o diferență care contează: **nu deduplică**. Dacă trimiți aceeași înscriere și din
@@ -190,7 +237,7 @@ chiar vrei rata de prezență în GA4, nu doar în panou.
 
 ---
 
-## 6. Fazele
+## 7. Fazele
 
 **1. Încărcarea condiționată** — o jumătate de zi
 
@@ -215,18 +262,20 @@ Evenimentul de lead cu valoare, în același loc unde pleacă acum `Lead` către
 
 **4. Configurarea din interfața GA4** — o oră, dar cu răbdare
 
-Dimensiunile personalizate, marcarea lui `generate_lead` ca eveniment-cheie, comparația
-salvată pe `hostname`, lista de *unwanted referrals*, și numărătoarea dimensiunilor deja
-folosite de magazin — singura verificare din punctul 2 care a rămas nefăcută.
+Cele cinci dimensiuni personalizate de la punctul 5, marcarea lui `generate_lead` ca
+eveniment-cheie, comparația salvată pe `hostname`, și lista de *unwanted referrals*.
+
+Toate înainte de prima campanie, din motivul de la punctul 5: dimensiunile nu se aplică
+retroactiv.
 
 **5. Measurement Protocol** — o zi, opțional
 
 Doar dacă vrei prezența în GA4. Cere `client_id` salvat pe înscriere, deci o migrație și o
-modificare în formular.
+modificare în formular. Vezi punctul 6.
 
 ---
 
-## 7. Cum verifici
+## 8. Cum verifici
 
 **DebugView** arată evenimentele în timp real, dar numai de la sesiunile marcate ca
 depanare. Se pornește dintr-o variabilă de mediu, la fel ca la Meta.
@@ -250,7 +299,7 @@ Ultimul e testul care spune dacă alegerea unei singure proprietăți a meritat.
 
 ---
 
-## 8. Ce nu-ți spune GA4 aici
+## 9. Ce nu-ți spune GA4 aici
 
 **Cine a venit la eveniment.** Rata de prezență trăiește în panou, unde se bifează. GA4 o
 află doar prin faza 5, și tot de la noi.
