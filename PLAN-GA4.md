@@ -58,19 +58,44 @@ GTM se poate adăuga peste, mai târziu.
 
 Astea trei n-ar fi contat cu o proprietate separată. Acum contează.
 
-### Numele evenimentelor nu trebuie să se ciocnească
+### Numele evenimentelor — verificat pe 30 august 2026
 
-Dacă site-ul mare trimite deja `generate_lead` — dintr-un formular de contact, dintr-un
-plugin — atunci înscrierile la webinarii s-ar amesteca cu lead-urile magazinului sub același
-nume.
+Proprietatea trimite acum 14 evenimente, toate de pe site-ul mare: `add_to_cart`,
+`begin_checkout`, `click`, `first_visit`, `form_start`, `form_submit`, `page_view`,
+`purchase`, `scroll`, `session_start`, `user_engagement`, `view_cart`, `view_item`,
+`view_search_results`.
 
-Deschide **Admin → Events** și uită-te ce nume există deja. Dacă `generate_lead` e liber,
-îl folosim. Dacă nu, înscrierea devine `inscriere_webinar`, care poate purta la fel de bine
-`value` și `currency`.
+Evenimente-cheie: `purchase` (cu date, din magazin), plus `qualify_lead` și
+`close_convert_lead` — cele două sunt nume din ciclul de lead-uri pe care Google le
+pregăteşte singur la legarea cu Ads, şi n-au nicio dată.
+
+Ce rezultă:
+
+- **`generate_lead` e liber.** Îl folosim, cu `value` și `currency`.
+- **`view_item` e ocupat** de produsele din magazin. Numele nostru, `view_event`, nu se
+  ciocnește cu el.
+- **`purchase` e al magazinului** și e eveniment-cheie. Nu-l atingem.
 
 Contează mai mult decât pare: **evenimentele-cheie sunt la nivel de proprietate și nu se pot
-filtra pe hostname.** Dacă imporți `generate_lead` în Google Ads ca o conversie, intră și
-lead-urile de pe site-ul mare, oricâte comparații ai salva.
+filtra pe hostname.** Dacă un nume e folosit de amândouă părțile, importul în Google Ads le
+adună, oricâte comparații ai salva. `generate_lead` fiind liber, conversia importată în Ads
+va fi curat a noastră.
+
+### Măsurarea îmbunătățită e pornită, și se aplică și la noi
+
+Din listă se vede că Enhanced Measurement e activ: `scroll`, `click`, `form_start`,
+`form_submit`, `view_search_results` vin de la el, nu din GTM.
+
+Setările sunt ale fluxului de date, nu ale domeniului — deci **din clipa în care GA4 se
+încarcă pe subdomeniu, aceleaşi evenimente încep să plece şi de la noi, fără să scriem
+nimic.**
+
+Două consecinţe pentru plan:
+
+- **`scroll` şi `click` le primim gratis.** Nu le trimitem noi.
+- **`form_start` nu mai e al nostru.** Îl trimite deja măsurarea îmbunătățită, la prima
+  atingere a oricărui formular. Dacă l-am trimite şi noi, l-am avea de două ori pe aceeaşi
+  interacţiune. Îl scoatem din lista noastră; se distinge oricum după hostname şi pagină.
 
 ### Limita de dimensiuni personalizate se împarte
 
@@ -126,19 +151,17 @@ făcute. Parametrii sunt ai noștri.
 | --- | --- | --- |
 | `page_view` | Automat, la fiecare pagină | — |
 | `view_event` | Deschiderea paginii unei întâlniri | `webinar_slug`, `webinar_title`, `webinar_format`, `webinar_price`, `locuri_ramase` |
-| `form_start` | Prima atingere a formularului | `webinar_slug` |
 | `generate_lead` | Înscriere reușită — **eveniment-cheie** | `webinar_slug`, `webinar_format`, `value`, `currency` |
 | `join_waitlist` | Înscriere pe lista de așteptare | `webinar_slug` sau „general" |
 | `add_to_calendar` | Apăsarea unui buton de calendar | `metoda`: `google` sau `ics` |
 | `request_replay` | Cererea înregistrării, după eveniment | `webinar_slug` |
-| `scroll` | Automat, la 90% din pagină | — |
+| `scroll`, `click`, `form_start` | Automat, din măsurarea îmbunătățită | — |
 
 `generate_lead`, nu `sign_up`: primul acceptă `value` și `currency`. La evenimentele cu
 preț trimitem suma reală; la cele gratuite, o valoare convenită de tine — altfel toate
 înscrierile cântăresc la fel și campaniile n-au după ce să optimizeze.
 
-Numele rămâne `generate_lead` **doar dacă e liber în proprietate** — vezi verificarea de la
-punctul 2.
+`generate_lead` e liber în proprietate, verificat — deci rămâne numele.
 
 > **Parametrii nu apar singuri în rapoarte.** Fiecare trebuie declarat ca dimensiune
 > personalizată, în **Admin → Custom definitions**. Până atunci sunt trimiși și stocați,
@@ -178,8 +201,12 @@ consimțământ pe `denied`, încarcă `gtag` și le actualizează la răspunsul
 
 **2. Evenimentele din pagini** — o jumătate de zi
 
-`view_event`, `form_start`, `add_to_calendar`. Un ajutor subțire, ca apelurile să nu fie
-împrăștiate prin componente.
+`view_event` și `add_to_calendar`. Un ajutor subțire, ca apelurile să nu fie împrăștiate
+prin componente.
+
+`add_to_calendar` se suprapune parţial cu `click`-ul automat pe linkuri externe, dar merită
+scris: parametrul `metoda` spune dacă omul a ales Google Calendar sau fişierul, iar
+`click`-ul nu.
 
 **3. Înscrierea** — o jumătate de zi
 
@@ -188,9 +215,9 @@ Evenimentul de lead cu valoare, în același loc unde pleacă acum `Lead` către
 
 **4. Configurarea din interfața GA4** — o oră, dar cu răbdare
 
-Cele trei verificări de la punctul 2, dimensiunile personalizate, marcarea evenimentului de
-lead ca eveniment-cheie, comparația salvată pe `hostname`, și verificarea că măsurarea
-îmbunătățită nu trimite deja `form_start` pe cont propriu — altfel îl ai de două ori.
+Dimensiunile personalizate, marcarea lui `generate_lead` ca eveniment-cheie, comparația
+salvată pe `hostname`, lista de *unwanted referrals*, și numărătoarea dimensiunilor deja
+folosite de magazin — singura verificare din punctul 2 care a rămas nefăcută.
 
 **5. Measurement Protocol** — o zi, opțional
 
@@ -214,7 +241,8 @@ Lista scurtă, după implementare:
   semnalele fără el.
 - Accepți → `page_view` pe pagina cu lista, apoi încă unul pe pagina unei întâlniri, la
   navigare.
-- Te înscrii → un singur eveniment de lead, cu valoarea corectă la un eveniment cu preț.
+- Te înscrii → un singur `generate_lead`, cu valoarea corectă la un eveniment cu preț, și
+  un singur `form_start` — nu două.
 - În Realtime, sursa vine din UTM-ul din link, nu din „magia-uleiurilor.ro".
 - Intri pe magazin, apoi pe subdomeniu → o singură sesiune, nu două.
 
