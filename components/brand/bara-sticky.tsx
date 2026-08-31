@@ -2,7 +2,12 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 
-import { formateazaDataOra, numesteEvenimentul } from '@/lib/format'
+import { numesteEvenimentul } from '@/lib/format'
+import {
+  formateazaProgramScurt,
+  stareaProgramului,
+  type Sesiune,
+} from '@/lib/program'
 
 function ramas(pana: string) {
   const diferenta = new Date(pana).getTime() - Date.now()
@@ -24,13 +29,17 @@ function ramas(pana: string) {
  * După încheierea evenimentului se transformă singură, fără să fie nevoie de
  * o schimbare în admin (brief §12.1). Numărătoarea pornește abia după montare,
  * altfel serverul și clientul ar randa valori diferite.
+ *
+ * Numără spre **următoarea** întâlnire, nu spre prima. La un atelier de trei
+ * zile, varianta veche ar fi scris „se anunță în curând" în seara primei zile,
+ * cu două zile de atelier încă în față.
  */
 export function BaraSticky({
-  startsAt,
+  sesiuni,
   format = 'online',
   gratuit = true,
 }: {
-  startsAt: string
+  sesiuni: Sesiune[]
   format?: string
   gratuit?: boolean
 }) {
@@ -46,18 +55,23 @@ export function BaraSticky({
   const montat = useSyncExternalStore(
     () => () => {},
     () => true,
-    () => false
+    () => false,
   )
-
-  const text = montat ? ramas(startsAt) : null
-  const trecut = montat && text === null
   void tic
+
+  // Înainte de montare nu ştim cât e ceasul la om, deci arătăm programul
+  // întreg, fără numărătoare — exact ce randează şi serverul.
+  const stare = montat ? stareaProgramului(sesiuni) : null
+  const text =
+    stare?.stare === 'inainte' ? ramas(stare.sesiune.starts_at) : null
 
   return (
     <div className="bg-surface-deep text-text-on-dark sticky top-0 z-40">
       <div className="mx-auto flex max-w-[var(--container-content)] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-5 py-2 text-center">
-        {trecut ? (
-          <span className="text-caption">Următoarea întâlnire se anunță în curând.</span>
+        {stare?.stare === 'trecut' ? (
+          <span className="text-caption">
+            Următoarea întâlnire se anunță în curând.
+          </span>
         ) : (
           <>
             <span className="text-caption font-semibold tracking-wide uppercase">
@@ -65,11 +79,20 @@ export function BaraSticky({
               {gratuit ? ' gratuit' : ''}
             </span>
             <span className="text-caption text-white/80">
-              {formateazaDataOra(startsAt)}
+              {formateazaProgramScurt(sesiuni)}
             </span>
+            {stare?.stare === 'in_curs' && (
+              <span className="text-caption rounded-full bg-white/10 px-2.5 py-0.5">
+                {sesiuni.length > 1
+                  ? `ziua ${stare.index + 1}, în desfășurare`
+                  : 'în desfășurare'}
+              </span>
+            )}
             {text && (
-              <span className="text-caption bg-white/10 rounded-full px-2.5 py-0.5">
-                începe în {text}
+              <span className="text-caption rounded-full bg-white/10 px-2.5 py-0.5">
+                {stare && stare.stare === 'inainte' && stare.index > 0
+                  ? `ziua ${stare.index + 1} începe în ${text}`
+                  : `începe în ${text}`}
               </span>
             )}
           </>

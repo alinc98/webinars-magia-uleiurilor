@@ -5,9 +5,10 @@ import { Fisa, Titlu2 } from '@/components/brand/bucati'
 import { ButonLink } from '@/components/brand/buton'
 import { ButoaneCalendar } from '@/components/public/butoane-calendar'
 import { Ornament } from '@/components/brand/ornament'
-import { ETICHETA_FORMAT, formateazaDataOra } from '@/lib/format'
+import { ETICHETA_FORMAT } from '@/lib/format'
 import { linkGoogleCalendar } from '@/lib/ics'
-import { getWebinarBySlug } from '@/lib/webinars/queries'
+import { formateazaProgramLung } from '@/lib/program'
+import { getWebinarBySlug, sesiuni } from '@/lib/webinars/queries'
 
 export const metadata: Metadata = {
   title: 'Te-ai înscris',
@@ -19,6 +20,8 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
   const slug = typeof w === 'string' ? w : undefined
   const webinar = slug ? await getWebinarBySlug(slug) : null
 
+  const program = webinar ? sesiuni(webinar) : []
+  const zile = formateazaProgramLung(program)
   const format = (webinar?.format ?? 'online') as 'online' | 'fizic'
   const locatie =
     format === 'online'
@@ -62,15 +65,27 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
             spam&rdquo;, ca să primești și reamintirile.
           </p>
 
-          {webinar?.starts_at && (
+          {webinar && program.length > 0 && (
             <>
               <div className="mt-6">
                 <Fisa
                   randuri={[
                     { eticheta: 'Întâlnirea', valoare: webinar.title },
                     {
-                      eticheta: 'Când',
-                      valoare: formateazaDataOra(webinar.starts_at),
+                      eticheta: program.length > 1 ? 'Program' : 'Când',
+                      valoare:
+                        program.length > 1 ? (
+                          <span className="flex flex-col gap-0.5">
+                            {zile.map((z) => (
+                              <span key={z.interval}>
+                                <span className="font-medium">{z.titlu}</span> —{' '}
+                                {z.interval}
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          zile[0].interval
+                        ),
                     },
                     { eticheta: 'Format', valoare: ETICHETA_FORMAT[format] },
                   ]}
@@ -86,11 +101,11 @@ export default async function Page(props: PageProps<'/inscriere-confirmata'>) {
                   linkGoogle={linkGoogleCalendar({
                     uid: `${webinar.id}@magia-uleiurilor.ro`,
                     title: webinar.title!,
-                    startsAt: webinar.starts_at,
-                    durationMin: webinar.duration_min ?? 60,
+                    sesiuni: program,
                     location: locatie,
                   })}
                   linkIcs={`/api/calendar/${webinar.slug}`}
+                  intalniri={program.length}
                 />
               </div>
             </>

@@ -12,11 +12,17 @@ import { env } from '@/lib/env'
 import { construiesteIcs, linkGoogleCalendar } from '@/lib/ics'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { trimiteEmail, type Atasament } from '@/lib/email/transport'
-import { formateazaDataOra } from '@/lib/format'
+import { formateazaProgramScurt } from '@/lib/program'
 import type { Database } from '@/lib/database.types'
 
-type Sablon = 'confirmare' | 'reminder_24h' | 'reminder_scurt' | 'followup_prezent'
-  | 'followup_absent' | 'replay' | 'anunt_lista'
+type Sablon =
+  | 'confirmare'
+  | 'reminder_24h'
+  | 'reminder_scurt'
+  | 'followup_prezent'
+  | 'followup_absent'
+  | 'replay'
+  | 'anunt_lista'
 
 /**
  * Emailurile de marketing respectă dezabonarea; cele operaționale, nu.
@@ -82,24 +88,24 @@ export async function trimiteSablon({
     ? `${siteUrl}/dezabonare/${destinatar.unsubscribeToken}`
     : undefined
 
-
   // La evenimentele online, locaţia era chiar linkul de intrare — ceea ce l-ar
   // fi strecurat în intrarea din calendar, deşi confirmarea nu-l mai conţine.
   // Linkul pleacă doar cu reamintirile.
   const locatie =
     webinar.format === 'online'
       ? 'Online'
-      : [webinar.venueName, webinar.address, webinar.city].filter(Boolean).join(', ')
+      : [webinar.venueName, webinar.address, webinar.city]
+          .filter(Boolean)
+          .join(', ')
 
   const optiuniIcs = {
     uid: `${webinar.id}@magia-uleiurilor.ro`,
     title: webinar.title,
     description:
       webinar.format === 'online'
-        ? `${webinar.title} — ${formateazaDataOra(webinar.startsAt)}. Linkul de intrare vine pe email înainte de eveniment.`
-        : `${webinar.title} — ${formateazaDataOra(webinar.startsAt)}`,
-    startsAt: webinar.startsAt,
-    durationMin: webinar.durationMin,
+        ? `${webinar.title} — ${formateazaProgramScurt(webinar.sesiuni)}. Linkul de intrare vine pe email înainte de eveniment.`
+        : `${webinar.title} — ${formateazaProgramScurt(webinar.sesiuni)}`,
+    sesiuni: webinar.sesiuni,
     location: locatie,
     url: `${siteUrl}/webinar/${webinar.slug}`,
     organizerName: 'Andreea Gligor',
@@ -174,7 +180,10 @@ export async function trimiteSablon({
   })
 
   if (!rezultat.ok) {
-    console.error(`Trimiterea ${sablon} către ${destinatar.email} a eșuat:`, rezultat.error)
+    console.error(
+      `Trimiterea ${sablon} către ${destinatar.email} a eșuat:`,
+      rezultat.error,
+    )
     return { ok: false, motiv: rezultat.error }
   }
 

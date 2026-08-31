@@ -163,9 +163,11 @@ export function Detalii({ randuri }: { randuri: [string, string][] }) {
         padding: '16px 20px',
       }}
     >
-      {randuri.map(([eticheta, valoare]) => (
+      {/* Cheia poartă şi indicele: la un program pe zile, două etichete pot
+          coincide dacă cineva le scrie la fel în admin. */}
+      {randuri.map(([eticheta, valoare], i) => (
         <Text
-          key={eticheta}
+          key={`${eticheta}-${i}`}
           style={{ fontSize: '15px', lineHeight: '1.6', margin: '0 0 6px' }}
         >
           <span style={{ color: culori.discret }}>{eticheta}: </span>

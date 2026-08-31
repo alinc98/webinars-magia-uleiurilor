@@ -21,6 +21,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
     { data: legaturi },
     { count: inscrisi },
     { count: inscrieriTotal },
+    { data: sesiuni },
   ] = await Promise.all([
     supabase.from('webinars').select('*').eq('id', id).maybeSingle(),
     supabase
@@ -44,6 +45,11 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
       .from('registrations')
       .select('id', { count: 'exact', head: true })
       .eq('webinar_id', id),
+    supabase
+      .from('webinar_sessions')
+      .select('starts_at, ends_at, label')
+      .eq('webinar_id', id)
+      .order('starts_at'),
   ])
 
   if (!webinar) notFound()
@@ -80,8 +86,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
           bonus_description: webinar.bonus_description,
           useful_info: webinar.useful_info,
           faq: (webinar.faq as { q: string; a: string }[] | null) ?? [],
-          starts_at: webinar.starts_at,
-          duration_min: webinar.duration_min,
+          sessions: sesiuni ?? [],
           format: webinar.format,
           join_url: webinar.join_url,
           venue_name: webinar.venue_name,

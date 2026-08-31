@@ -19,7 +19,7 @@ export default async function Page() {
       .from('webinars')
       .select('id, title, starts_at')
       .eq('status', 'published')
-      .gte('starts_at', new Date().toISOString())
+      .gte('ends_at', new Date().toISOString())
       .order('starts_at'),
   ])
 

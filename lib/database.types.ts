@@ -510,6 +510,45 @@ export type Database = {
           },
         ]
       }
+      webinar_sessions: {
+        Row: {
+          ends_at: string
+          id: string
+          label: string | null
+          starts_at: string
+          webinar_id: string
+        }
+        Insert: {
+          ends_at: string
+          id?: string
+          label?: string | null
+          starts_at: string
+          webinar_id: string
+        }
+        Update: {
+          ends_at?: string
+          id?: string
+          label?: string | null
+          starts_at?: string
+          webinar_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_sessions_webinar_id_fkey"
+            columns: ["webinar_id"]
+            isOneToOne: false
+            referencedRelation: "webinars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webinar_sessions_webinar_id_fkey"
+            columns: ["webinar_id"]
+            isOneToOne: false
+            referencedRelation: "webinars_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webinar_speakers: {
         Row: {
           role_label: Database["public"]["Enums"]["speaker_role"]
@@ -565,6 +604,7 @@ export type Database = {
           created_at: string
           description: string | null
           duration_min: number
+          ends_at: string
           faq: Json
           for_whom: Json
           format: Database["public"]["Enums"]["webinar_format"]
@@ -604,6 +644,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_min?: number
+          ends_at: string
           faq?: Json
           for_whom?: Json
           format?: Database["public"]["Enums"]["webinar_format"]
@@ -643,6 +684,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_min?: number
+          ends_at?: string
           faq?: Json
           for_whom?: Json
           format?: Database["public"]["Enums"]["webinar_format"]
@@ -722,6 +764,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           duration_min: number | null
+          ends_at: string | null
           faq: Json | null
           for_whom: Json | null
           format: Database["public"]["Enums"]["webinar_format"] | null
@@ -740,6 +783,7 @@ export type Database = {
           seats_left: number | null
           seo_description: string | null
           seo_title: string | null
+          sessions: Json | null
           slug: string | null
           sort_order: number | null
           speakers: Json | null
@@ -826,6 +870,10 @@ export type Database = {
           p_tracking?: Json
         }
         Returns: Json
+      }
+      set_webinar_sessions: {
+        Args: { p_sessions: Json; p_webinar_id: string }
+        Returns: undefined
       }
       unsubscribe_by_token: { Args: { p_token: string }; Returns: Json }
     }

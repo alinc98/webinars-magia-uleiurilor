@@ -8,12 +8,8 @@ import {
   Titlu,
 } from './componente'
 import type { ContextEmail } from './tipuri'
-import {
-  ETICHETA_FORMAT,
-  formateazaDataOra,
-  formateazaDurata,
-  formateazaPret,
-} from '@/lib/format'
+import { ETICHETA_FORMAT, formateazaPret } from '@/lib/format'
+import { randuriProgram } from '@/lib/program'
 
 /**
  * Confirmarea de înscriere.
@@ -33,8 +29,7 @@ export function EmailConfirmare({
   const arataOnline = webinar.format === 'online'
 
   const randuri: [string, string][] = [
-    ['Când', formateazaDataOra(webinar.startsAt)],
-    ['Durată', formateazaDurata(webinar.durationMin)],
+    ...randuriProgram(webinar.sesiuni),
     ['Format', ETICHETA_FORMAT[webinar.format]!],
   ]
   if (webinar.priceBani != null) {
@@ -74,7 +69,6 @@ export function EmailConfirmare({
         </Discret>
       )}
 
-
       {arataFizic && webinar.mapUrl && (
         <Buton href={webinar.mapUrl}>Deschide în Google Maps</Buton>
       )}
@@ -95,8 +89,6 @@ export function EmailConfirmare({
           zi înainte, și încă o dată cu o oră înainte de început.
         </Paragraf>
       )}
-
-
 
       {/* Tot blocul depinde de acelaşi lucru: fişierul .ics se ataşează şi
           linkul de Google se construieşte în aceeaşi ramură. Fără el, secţiunea

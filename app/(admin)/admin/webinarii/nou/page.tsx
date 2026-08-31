@@ -17,10 +17,13 @@ export default async function Page() {
 
   return (
     <>
-      <Antet titlu="Webinar nou" descriere="Pagina publică există imediat ce alegi statusul Publicat." />
+      <Antet
+        titlu="Webinar nou"
+        descriere="Pagina publică există imediat ce alegi statusul Publicat."
+      />
       <FormularWebinar
         actiune={salveazaWebinarNou}
-        valori={{ duration_min: 60, listed: true, format: 'online', status: 'draft' }}
+        valori={{ listed: true, format: 'online', status: 'draft' }}
         speakeri={speakeri ?? []}
       />
     </>

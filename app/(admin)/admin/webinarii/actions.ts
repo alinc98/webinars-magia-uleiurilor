@@ -43,6 +43,30 @@ function citesteFaq(formData: FormData) {
     .filter((rand) => rand.q.trim() || rand.a.trim())
 }
 
+/**
+ * Programul vine ca trei liste paralele: `sesiune_start`, `sesiune_end` şi
+ * `sesiune_label`.
+ *
+ * Acelaşi tipar ca la FAQ, şi din acelaşi motiv: `Object.fromEntries` păstrează
+ * doar ultima valoare a unei chei repetate, deci rândurile se citesc cu
+ * `getAll`. Rândurile complet goale se aruncă aici — cineva care apasă „Adaugă
+ * o zi" şi se răzgândeşte nu trebuie să primească o eroare pentru un rând pe
+ * care nu l-a atins.
+ */
+function citesteSesiuni(formData: FormData) {
+  const inceputuri = formData.getAll('sesiune_start').map(String)
+  const finaluri = formData.getAll('sesiune_end').map(String)
+  const etichete = formData.getAll('sesiune_label').map(String)
+
+  return inceputuri
+    .map((starts_at, i) => ({
+      starts_at,
+      ends_at: finaluri[i] ?? '',
+      label: etichete[i] ?? '',
+    }))
+    .filter((s) => s.starts_at.trim() || s.ends_at.trim())
+}
+
 function citesteFormular(formData: FormData) {
   const brut = Object.fromEntries(formData.entries())
   return webinarSchema.safeParse({
@@ -52,6 +76,7 @@ function citesteFormular(formData: FormData) {
     replay_public: formData.get('replay_public') === 'on',
     speaker_ids: formData.getAll('speaker_ids').filter(Boolean) as string[],
     faq: citesteFaq(formData),
+    sessions: citesteSesiuni(formData),
     // Câmpul din formular e în lei; coloana e în bani. Când alegerea e
     // „gratuit", suma se ignoră chiar dacă a rămas scrisă în câmp: alegerea
     // are ultimul cuvânt, altfel un eveniment trecut înapoi pe gratuit ar
@@ -132,8 +157,15 @@ export async function salveazaWebinar(
     }
   }
 
-  // `price_mod` e stare de interfaţă, nu coloană.
-  const { speaker_ids, gazda_id, price_mod: _mod, ...date } = rezultat.data
+  // `price_mod` e stare de interfaţă, nu coloană. `sessions` e un tabel
+  // separat, scris mai jos printr-un RPC.
+  const {
+    speaker_ids,
+    gazda_id,
+    price_mod: _mod,
+    sessions,
+    ...date
+  } = rezultat.data
   const supabase = createAdminClient()
 
   // Un singur webinar evidențiat: baza garantează asta printr-un index unic,
@@ -146,9 +178,18 @@ export async function salveazaWebinar(
       .neq('id', id ?? '00000000-0000-0000-0000-000000000000')
   }
 
+  // Rândul de eveniment poartă un rezumat al programului: prima întâlnire şi
+  // ultima. Adevărul stă în `webinar_sessions`, iar un trigger recalculează
+  // rezumatul după fiecare scriere — dar coloanele sunt `not null`, deci la
+  // inserare trebuie să vină cu ceva. Îl calculăm aici din aceleaşi date.
+  const program = [...sessions].sort((a, b) =>
+    a.starts_at.localeCompare(b.starts_at),
+  )
+
   const valori = {
     ...date,
-    starts_at: new Date(date.starts_at).toISOString(),
+    starts_at: new Date(program[0].starts_at).toISOString(),
+    ends_at: new Date(program[program.length - 1].ends_at).toISOString(),
     learning_points: date.learning_points,
     for_whom: date.for_whom,
   }
@@ -180,6 +221,19 @@ export async function salveazaWebinar(
   }
 
   if (webinarId) {
+    // Ştergere şi rescriere într-o singură tranzacţie, în bază. Făcută din
+    // două apeluri PostgREST, ar exista o clipă în care evenimentul n-are
+    // program — iar un eşec la jumătate l-ar lăsa aşa.
+    const { error } = await supabase.rpc('set_webinar_sessions', {
+      p_webinar_id: webinarId,
+      p_sessions: program.map((s) => ({
+        starts_at: new Date(s.starts_at).toISOString(),
+        ends_at: new Date(s.ends_at).toISOString(),
+        label: s.label,
+      })),
+    })
+    if (error) return { ok: false, mesaj: traduEroare(error.message) }
+
     await sincronizeazaSpeakeri(webinarId, speaker_ids, gazda_id)
   }
 
@@ -243,6 +297,20 @@ export async function dupliceazaWebinar(id: string) {
 
   if (error || !copie) return
 
+  // Programul se copiază la fel ca speakerii. Fără el, copia ar păstra doar
+  // rezumatul de pe rând şi ar apărea pe site fără nicio întâlnire.
+  const { data: sesiuni } = await supabase
+    .from('webinar_sessions')
+    .select('starts_at, ends_at, label')
+    .eq('webinar_id', id)
+    .order('starts_at')
+
+  if (sesiuni?.length) {
+    await supabase
+      .from('webinar_sessions')
+      .insert(sesiuni.map((s) => ({ ...s, webinar_id: copie.id })))
+  }
+
   const { data: speakeri } = await supabase
     .from('webinar_speakers')
     .select('speaker_id, role_label, sort_order')
@@ -271,6 +339,10 @@ function traduEroare(mesaj: string): string {
   if (mesaj.includes('webinars_replay_cere_url'))
     return 'Ca să publici înregistrarea, ai nevoie de link.'
   if (mesaj.includes('cel mult 3 speakeri')) return 'Cel mult trei speakeri.'
+  if (mesaj.includes('webinar_sessions_interval'))
+    return 'O întâlnire se termină înainte să înceapă.'
+  if (mesaj.includes('webinar_sessions_fara_dubluri'))
+    return 'Ai două întâlniri care încep la aceeaşi oră.'
   console.error('Eroare la salvarea webinarului:', mesaj)
   return 'Nu am putut salva. Încearcă din nou.'
 }

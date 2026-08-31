@@ -1,8 +1,10 @@
+import type { Sesiune } from '@/lib/program'
+
 export type DateWebinar = {
   title: string
   slug: string
-  startsAt: string
-  durationMin: number
+  /** Una sau mai multe întâlniri, în ordine cronologică. */
+  sesiuni: Sesiune[]
   format: 'online' | 'fizic'
   joinUrl?: string | null
   venueName?: string | null

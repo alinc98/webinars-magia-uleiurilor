@@ -25,12 +25,17 @@ import { openGraph } from '@/lib/seo'
 import {
   ETICHETA_FORMAT,
   formateazaPret,
-  formateazaDataOra,
   numesteEvenimentul,
 } from '@/lib/format'
 import {
+  formateazaProgramLung,
+  formateazaProgramScurt,
+  durataTotala,
+} from '@/lib/program'
+import {
   getSlugsPublicate,
   getWebinarBySlug,
+  sesiuni,
   speakeri,
 } from '@/lib/webinars/queries'
 
@@ -105,11 +110,32 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   const pentruCine = (webinar.for_whom as string[] | null) ?? []
   const faq = (webinar.faq as { q: string; a: string }[] | null) ?? []
 
+  const program = sesiuni(webinar)
+  const zile = formateazaProgramLung(program)
+
   const detalii: { eticheta: string; valoare: React.ReactNode }[] = [
-    { eticheta: 'Data', valoare: formateazaDataOra(webinar.starts_at!) },
-    { eticheta: 'Durata', valoare: `${webinar.duration_min} de minute` },
+    {
+      eticheta: program.length > 1 ? 'Program' : 'Data',
+      valoare:
+        program.length > 1 ? (
+          // Câte o linie per zi. „720 de minute" ar fi fost corect şi n-ar fi
+          // spus nimic.
+          <span className="flex flex-col gap-0.5">
+            {zile.map((z) => (
+              <span key={z.interval}>
+                <span className="font-medium">{z.titlu}</span> — {z.interval}
+              </span>
+            ))}
+          </span>
+        ) : (
+          (zile[0]?.interval ?? '')
+        ),
+    },
     { eticheta: 'Format', valoare: ETICHETA_FORMAT[format] },
-    { eticheta: 'Cost', valoare: pret === null ? 'Gratuit' : formateazaPret(pret) },
+    {
+      eticheta: 'Cost',
+      valoare: pret === null ? 'Gratuit' : formateazaPret(pret),
+    },
   ]
   if (laFataLocului && webinar.venue_name) {
     detalii.push({ eticheta: 'Unde', valoare: webinar.venue_name })
@@ -128,11 +154,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
     <div className="bg-brand-bg text-text-body font-body">
       <UrmareteViewContent />
       <UrmaresteEveniment date={dateGa4} />
-      <BaraSticky
-        startsAt={webinar.starts_at!}
-        format={format}
-        gratuit={pret === null}
-      />
+      <BaraSticky sesiuni={program} format={format} gratuit={pret === null} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className="bg-surface relative overflow-hidden px-5 pt-8 pb-12">
@@ -182,7 +204,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
           )}
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Insigna>{formateazaDataOra(webinar.starts_at!)}</Insigna>
+            <Insigna>{formateazaProgramScurt(program)}</Insigna>
             <Insigna>
               {online && !laFataLocului
                 ? 'Online'
@@ -190,7 +212,10 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
                   ? webinar.city
                   : ETICHETA_FORMAT[format]}
             </Insigna>
-            <Insigna ton="sage">{webinar.duration_min} de minute</Insigna>
+            <Insigna ton="sage">
+              {durataTotala(program)}
+              {program.length > 1 ? ' în total' : ''}
+            </Insigna>
             <Insigna ton="gold">
               {pret === null ? 'Gratuit' : formateazaPret(pret)}
             </Insigna>

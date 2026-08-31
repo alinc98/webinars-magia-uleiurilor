@@ -3,7 +3,10 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { IncarcaImagine } from '@/components/admin/incarca-imagine'
-import { SelectorDataOra } from '@/components/admin/selector-data-ora'
+import {
+  EditorProgram,
+  type SesiuneInitiala,
+} from '@/components/admin/editor-program'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -34,8 +37,7 @@ export type ValoriWebinar = {
   bonus_description?: string | null
   useful_info?: string | null
   faq?: { q: string; a: string }[]
-  starts_at?: string
-  duration_min?: number
+  sessions?: SesiuneInitiala[]
   format?: 'online' | 'fizic'
   join_url?: string | null
   venue_name?: string | null
@@ -304,32 +306,9 @@ export function FormularWebinar({
       </Sectiune>
 
       <Sectiune titlu="Programare">
+        <EditorProgram initiale={valori.sessions ?? []} erori={e} />
+
         <div className="grid gap-4 md:grid-cols-3">
-          <Camp
-            eticheta="Data și ora"
-            id={`${idFormular}-start`}
-            eroare={e.starts_at}
-          >
-            <SelectorDataOra
-              id={`${idFormular}-start`}
-              nume="starts_at"
-              valoare={valori.starts_at}
-            />
-          </Camp>
-          <Camp
-            eticheta="Durată (minute)"
-            id={`${idFormular}-durata`}
-            eroare={e.duration_min}
-          >
-            <Input
-              id={`${idFormular}-durata`}
-              name="duration_min"
-              type="number"
-              min={1}
-              defaultValue={valori.duration_min ?? 60}
-              required
-            />
-          </Camp>
           <Camp
             eticheta="Capacitate"
             id={`${idFormular}-cap`}
@@ -386,7 +365,9 @@ export function FormularWebinar({
                   name="price_lei"
                   inputMode="decimal"
                   defaultValue={
-                    valori.price_bani != null ? pretInLei(valori.price_bani) : ''
+                    valori.price_bani != null
+                      ? pretInLei(valori.price_bani)
+                      : ''
                   }
                 />
               </Camp>
@@ -394,8 +375,7 @@ export function FormularWebinar({
           )}
         </fieldset>
 
-        <div className="grid gap-4 md:grid-cols-2">
-        </div>
+        <div className="grid gap-4 md:grid-cols-2"></div>
 
         <fieldset>
           <legend className="mb-2 text-sm font-medium">Format</legend>

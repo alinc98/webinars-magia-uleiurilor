@@ -8,11 +8,8 @@ import {
   Titlu,
 } from './componente'
 import type { ContextEmail } from './tipuri'
-import {
-  formateazaDataOra,
-  formateazaDurata,
-  formateazaOra,
-} from '@/lib/format'
+import { formateazaOra } from '@/lib/format'
+import { primaSesiune, randuriProgram } from '@/lib/program'
 
 type Props = ContextEmail & { cand: '24h' | 'scurt' }
 
@@ -41,11 +38,16 @@ export function EmailReminder({
   const online = webinar.format === 'online'
   const laFataLocului = webinar.format === 'fizic'
 
+  // Reamintirile pleacă doar înaintea primei întâlniri: cron-ul revendică pe
+  // `webinars.starts_at`, care e chiar începutul ei. La un atelier pe mai
+  // multe zile, „începe la ora" e ora din prima zi.
+  const prima = primaSesiune(webinar.sesiuni)
+
   if (cand === 'scurt') {
     // Se citește pe telefon, adesea în picioare. Ora, calea de intrare, atât.
     return (
       <Sablon
-        preview={`Începem la ${formateazaOra(webinar.startsAt)}.`}
+        preview={`Începem la ${formateazaOra(prima!.starts_at)}.`}
         unsubscribeUrl={unsubscribeUrl}
       >
         <Titlu>
@@ -54,7 +56,7 @@ export function EmailReminder({
 
         <Paragraf>
           Bună, {name}! <strong>{webinar.title}</strong> începe la ora{' '}
-          {formateazaOra(webinar.startsAt)}.
+          {formateazaOra(prima!.starts_at)}.
         </Paragraf>
 
         {online && webinar.joinUrl && (
@@ -87,10 +89,7 @@ export function EmailReminder({
     )
   }
 
-  const randuri: [string, string][] = [
-    ['Când', formateazaDataOra(webinar.startsAt)],
-    ['Durată', formateazaDurata(webinar.durationMin)],
-  ]
+  const randuri: [string, string][] = [...randuriProgram(webinar.sesiuni)]
   if (laFataLocului && webinar.venueName) {
     randuri.push(['Unde', webinar.venueName])
   }

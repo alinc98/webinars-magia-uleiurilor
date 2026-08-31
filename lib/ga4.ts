@@ -65,8 +65,14 @@ export function intratPeListaAsteptare(slug?: string) {
   trimite('join_waitlist', { webinar_slug: slug ?? 'general' })
 }
 
-/** Adăugarea în calendar, de pe pagina de mulțumire. */
-export function adaugatInCalendar(metoda: 'google' | 'ics') {
+/**
+ * Adăugarea în calendar, de pe pagina de mulțumire.
+ *
+ * `ics_multiplu` e fișierul unui eveniment pe mai multe zile. Separat de
+ * `ics`, ca rapoartele să nu amestece două lucruri diferite: unul e „mi-am pus
+ * o seară în calendar", celălalt „mi-am blocat trei dimineți".
+ */
+export function adaugatInCalendar(metoda: 'google' | 'ics' | 'ics_multiplu') {
   trimite('add_to_calendar', { metoda })
 }
 

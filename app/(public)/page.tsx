@@ -15,15 +15,16 @@ import { ButonLink } from '@/components/brand/buton'
 import { Ornament } from '@/components/brand/ornament'
 import { Poza } from '@/components/brand/poza'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
-import {
-  ETICHETA_FORMAT,
-  formateazaData,
-  formateazaDataOra,
-  formateazaPret,
-} from '@/lib/format'
+import { ETICHETA_FORMAT, formateazaPret } from '@/lib/format'
 import { LINKURI } from '@/lib/linkuri'
 import {
+  formateazaProgramScurt,
+  formateazaZile,
+  durataTotala,
+} from '@/lib/program'
+import {
   getWebinariiHub,
+  sesiuni,
   speakeri,
   type WebinarPublic,
 } from '@/lib/webinars/queries'
@@ -141,7 +142,7 @@ export default async function Page() {
                 >
                   <span className="text-body">{w.title}</span>
                   <span className="text-caption text-text-muted">
-                    {formateazaData(w.starts_at!)}
+                    {formateazaZile(sesiuni(w))}
                   </span>
                   <Link
                     href={`/inregistrare/${w.slug}`}
@@ -161,9 +162,17 @@ export default async function Page() {
 
 function Meta({ webinar }: { webinar: WebinarPublic }) {
   const format = webinar.format ?? 'online'
+  const program = sesiuni(webinar)
   return (
     <div className="flex flex-wrap gap-2">
-      <Insigna>{formateazaDataOra(webinar.starts_at!)}</Insigna>
+      <Insigna>{formateazaProgramScurt(program)}</Insigna>
+      {/* Numărul de zile apare doar când chiar sunt mai multe: la o întâlnire
+          de o seară, durata e deja în insigna de dinainte. */}
+      {program.length > 1 && (
+        <Insigna ton="sage">
+          {program.length} întâlniri · {durataTotala(program)}
+        </Insigna>
+      )}
       <Insigna ton="sage">
         {ETICHETA_FORMAT[format]}
         {format !== 'online' && webinar.city ? ` · ${webinar.city}` : ''}

@@ -55,7 +55,74 @@ const pret = z
     ]),
   )
   .transform((v) => (v === '' ? null : Math.round(Number(v) * 100)))
-  .refine((v) => v === null || v > 0, 'Prețul trebuie să fie mai mare decât zero.')
+  .refine(
+    (v) => v === null || v > 0,
+    'Prețul trebuie să fie mai mare decât zero.',
+  )
+
+/**
+ * Moment absolut, cu fus.
+ *
+ * Un şir naiv ca „2026-09-23T22:00" ar fi citit de `new Date()` în fusul
+ * procesului — pe Vercel, UTC — şi ora ar sări cu trei ore. Refuzăm forma aia
+ * aici, ca greşeala să nu se poată întoarce pe furiş dacă cineva schimbă
+ * vreodată controlul din formular.
+ */
+const momentAbsolut = (mesaj: string) =>
+  z
+    .string()
+    .min(1, mesaj)
+    .regex(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/,
+      mesaj,
+    )
+
+/**
+ * Regulile unui program: fiecare întâlnire se termină după ce începe, şi două
+ * întâlniri nu se calcă una pe alta.
+ *
+ * Eroarea se pune pe rândul vinovat, nu pe listă: altfel omul ar vedea
+ * „întâlnirile se suprapun" fără să ştie care dintre ele. Verificăm pe o copie
+ * sortată, dar raportăm pe indicii din formular — ordinea de pe ecran e cea pe
+ * care o vede.
+ */
+function verificaProgram(
+  sesiuni: { starts_at: string; ends_at: string }[],
+  ctx: z.RefinementCtx,
+) {
+  const cuIndex = sesiuni
+    .map((s, i) => ({
+      i,
+      start: Date.parse(s.starts_at),
+      final: Date.parse(s.ends_at),
+    }))
+    .sort((a, b) => a.start - b.start)
+
+  for (const s of cuIndex) {
+    if (!(s.final > s.start)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [s.i, 'ends_at'],
+        message: 'Ora de final trebuie să fie după cea de început.',
+      })
+    }
+  }
+
+  for (let k = 1; k < cuIndex.length; k++) {
+    const precedenta = cuIndex[k - 1]
+    const curenta = cuIndex[k]
+    if (curenta.start < precedenta.final) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [curenta.i, 'starts_at'],
+        message:
+          curenta.start === precedenta.start
+            ? 'Ai două întâlniri la aceeași oră.'
+            : 'Întâlnirea asta începe înainte să se termine cea dinaintea ei.',
+      })
+    }
+  }
+}
 
 export const webinarSchema = z
   .object({
@@ -95,18 +162,19 @@ export const webinarSchema = z
     // pentru ce ţine strict de un loc fizic.
     useful_info: optional(2000),
 
-    // Moment absolut, cu fus. Un şir naiv ca „2026-09-23T22:00" ar fi citit
-    // de `new Date()` în fusul procesului — pe Vercel, UTC — şi ora ar sări cu
-    // trei ore. Refuzăm forma aia aici, ca greşeala să nu se poată întoarce
-    // pe furiş dacă cineva schimbă câmpul din formular.
-    starts_at: z
-      .string()
-      .min(1, 'Alege data și ora.')
-      .regex(
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/,
-        'Alege data și ora.',
-      ),
-    duration_min: z.coerce.number<number>().int().positive().max(1440),
+    // Programul: una sau mai multe întâlniri. Un eveniment de o seară e cazul
+    // cu o singură sesiune, deci nu are ramură separată nicăieri.
+    sessions: z
+      .array(
+        z.object({
+          starts_at: momentAbsolut('Alege data și ora de început.'),
+          ends_at: momentAbsolut('Alege ora la care se termină.'),
+          label: optional(120),
+        }),
+      )
+      .min(1, 'Adaugă cel puțin o întâlnire.')
+      .max(14, 'Cel mult paisprezece întâlniri.')
+      .superRefine(verificaProgram),
     format: z.enum(['online', 'fizic']),
 
     join_url: optional(500),
