@@ -1,6 +1,7 @@
 import 'server-only'
 
 import type { DateWebinar } from '@/emails/tipuri'
+import { monedaDin } from '@/lib/format'
 import { sesiuniDin } from '@/lib/program'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { DestinatarEmail } from '@/lib/email/trimite'
@@ -39,7 +40,7 @@ export async function getWebinarPentruEmail(
     // `webinar_sessions(...)` e o resursă încorporată — PostgREST o aduce în
     // acelaşi apel. Ordinea ei n-o garantează nimic aici; o pune `sesiuniDin`.
     .select(
-      'id, title, slug, format, join_url, venue_name, address, city, map_url, venue_notes, useful_info, price_bani, recording_url, bonus_title, webinar_sessions(starts_at, ends_at, label)',
+      'id, title, slug, format, join_url, venue_name, address, city, map_url, venue_notes, useful_info, price_bani, price_currency, recording_url, bonus_title, webinar_sessions(starts_at, ends_at, label)',
     )
     .eq('id', webinarId)
     .maybeSingle()
@@ -60,6 +61,7 @@ export async function getWebinarPentruEmail(
     venueNotes: data.venue_notes,
     usefulInfo: data.useful_info,
     priceBani: data.price_bani,
+    priceCurrency: monedaDin(data.price_currency),
     recordingUrl: data.recording_url,
     bonusTitle: data.bonus_title,
   }

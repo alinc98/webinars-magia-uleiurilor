@@ -97,6 +97,7 @@ export default async function Page(props: PageProps<'/admin/webinarii/[id]'>) {
           venue_notes: webinar.venue_notes,
           capacity: webinar.capacity,
           price_bani: webinar.price_bani,
+          price_currency: webinar.price_currency,
           cover_image_url: webinar.cover_image_url,
           status: webinar.status,
           listed: webinar.listed,

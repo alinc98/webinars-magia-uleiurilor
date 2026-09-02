@@ -33,7 +33,10 @@ export function EmailConfirmare({
     ['Format', ETICHETA_FORMAT[webinar.format]!],
   ]
   if (webinar.priceBani != null) {
-    randuri.push(['Cost', formateazaPret(webinar.priceBani)])
+    randuri.push([
+      'Cost',
+      formateazaPret(webinar.priceBani, webinar.priceCurrency),
+    ])
   }
   if (arataFizic && webinar.venueName) randuri.push(['Unde', webinar.venueName])
   if (arataFizic && webinar.address) {

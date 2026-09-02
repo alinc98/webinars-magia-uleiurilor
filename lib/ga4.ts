@@ -24,8 +24,9 @@ export type DateEvenimentGa4 = {
   slug: string
   titlu: string
   format: 'online' | 'fizic'
-  /** În bani. Lipseşte la evenimentele gratuite. */
+  /** În subunitatea monedei. Lipseşte la evenimentele gratuite. */
   pretBani?: number | null
+  moneda?: 'RON' | 'EUR'
   locuriRamase?: number | null
 }
 
@@ -34,8 +35,9 @@ function parametriEveniment(e: DateEvenimentGa4): Parametri {
     webinar_slug: e.slug,
     webinar_title: e.titlu,
     webinar_format: e.format,
-    // În lei, nu în bani: rapoartele se citesc de oameni.
+    // În unităţi, nu în subunitatea monedei: rapoartele se citesc de oameni.
     webinar_price: e.pretBani != null ? e.pretBani / 100 : 0,
+    webinar_currency: e.moneda ?? 'RON',
     locuri_ramase: e.locuriRamase ?? undefined,
   }
 }
@@ -56,7 +58,10 @@ export function inscriereReusita(e: DateEvenimentGa4) {
   trimite('generate_lead', {
     ...parametriEveniment(e),
     value: e.pretBani != null ? e.pretBani / 100 : 0,
-    currency: 'RON',
+    // Trimisă aşa cum e, nu convertită: GA4 aduce singur totul în moneda
+    // proprietăţii, la cursul zilei în care s-a produs evenimentul. O conversie
+    // făcută de noi ar fi îngheţat un curs şi ar fi ascuns ce s-a întâmplat.
+    currency: e.moneda ?? 'RON',
   })
 }
 

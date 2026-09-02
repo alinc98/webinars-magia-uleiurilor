@@ -616,6 +616,7 @@ export type Database = {
           map_url: string | null
           meta_pixel_id: string | null
           price_bani: number | null
+          price_currency: string
           recording_url: string | null
           replay_public: boolean
           seo_description: string | null
@@ -656,6 +657,7 @@ export type Database = {
           map_url?: string | null
           meta_pixel_id?: string | null
           price_bani?: number | null
+          price_currency?: string
           recording_url?: string | null
           replay_public?: boolean
           seo_description?: string | null
@@ -696,6 +698,7 @@ export type Database = {
           map_url?: string | null
           meta_pixel_id?: string | null
           price_bani?: number | null
+          price_currency?: string
           recording_url?: string | null
           replay_public?: boolean
           seo_description?: string | null
@@ -777,6 +780,7 @@ export type Database = {
           map_url: string | null
           meta_pixel_id: string | null
           price_bani: number | null
+          price_currency: string | null
           recording_url: string | null
           registrations_count: number | null
           replay_public: boolean | null

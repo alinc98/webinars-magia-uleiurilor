@@ -33,7 +33,9 @@ const listaDeRanduri = z
   )
 
 /**
- * Preţul se scrie în lei şi se ţine în bani.
+ * Preţul se scrie în unităţi şi se ţine în subunitatea monedei: bani la lei,
+ * cenţi la euro. Împărţirea e aceeaşi la amândouă, deci parserul nu are nevoie
+ * să ştie care e moneda.
  *
  * Acceptăm şi virgula, şi punctul: pe tastatura românească virgula e
  * separatorul firesc, iar un formular care refuză „149,50" pare stricat.
@@ -48,10 +50,7 @@ const pret = z
       z.literal(''),
       z
         .string()
-        .regex(
-          /^\d+(\.\d{1,2})?$/,
-          'Scrie prețul în lei, de exemplu 150 sau 149,50.',
-        ),
+        .regex(/^\d+(\.\d{1,2})?$/, 'Scrie prețul, de exemplu 150 sau 149,50.'),
     ]),
   )
   .transform((v) => (v === '' ? null : Math.round(Number(v) * 100)))
@@ -198,6 +197,10 @@ export const webinarSchema = z
     // singură coloană, iar „gratuit" înseamnă preţ gol.
     price_mod: z.enum(['gratuit', 'platit']).default('gratuit'),
     price_bani: pret,
+    // Rămâne pe lei şi la evenimentele gratuite, unde nu înseamnă nimic: o
+    // coloană `not null` cu o valoare implicită e mai simplu de citit decât una
+    // care poate lipsi.
+    price_currency: z.enum(['RON', 'EUR']).default('RON'),
     cover_image_url: optional(500),
 
     status: z.enum(['draft', 'published', 'live', 'ended', 'cancelled']),

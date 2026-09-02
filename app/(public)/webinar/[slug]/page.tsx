@@ -25,6 +25,7 @@ import { openGraph } from '@/lib/seo'
 import {
   ETICHETA_FORMAT,
   formateazaPret,
+  monedaDin,
   numesteEvenimentul,
 } from '@/lib/format'
 import {
@@ -97,12 +98,14 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
   // NULL în bază înseamnă gratuit. O singură coloană, deci nu există starea
   // „cu plată, fără preț".
   const pret = webinar.price_bani ?? null
+  const moneda = monedaDin(webinar.price_currency)
 
   const dateGa4 = {
     slug,
     titlu: webinar.title ?? '',
     format,
     pretBani: pret,
+    moneda,
     locuriRamase: webinar.seats_left,
   }
 
@@ -134,7 +137,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
     { eticheta: 'Format', valoare: ETICHETA_FORMAT[format] },
     {
       eticheta: 'Cost',
-      valoare: pret === null ? 'Gratuit' : formateazaPret(pret),
+      valoare: pret === null ? 'Gratuit' : formateazaPret(pret, moneda),
     },
   ]
   if (laFataLocului && webinar.venue_name) {
@@ -217,7 +220,7 @@ export default async function Page(props: PageProps<'/webinar/[slug]'>) {
               {program.length > 1 ? ' în total' : ''}
             </Insigna>
             <Insigna ton="gold">
-              {pret === null ? 'Gratuit' : formateazaPret(pret)}
+              {pret === null ? 'Gratuit' : formateazaPret(pret, moneda)}
             </Insigna>
           </div>
 

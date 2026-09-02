@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useActiuneFormular } from '@/lib/formular'
-import { pretInLei } from '@/lib/format'
+import { ETICHETA_MONEDA, monedaDin, sumaZecimala } from '@/lib/format'
 import { sugereazaSlug } from '@/lib/validations/webinar'
 import type { StareFormular } from '@/app/(admin)/admin/webinarii/actions'
 
@@ -48,6 +48,7 @@ export type ValoriWebinar = {
   venue_notes?: string | null
   capacity?: number | null
   price_bani?: number | null
+  price_currency?: string | null
   cover_image_url?: string | null
   status?: string
   listed?: boolean
@@ -91,6 +92,12 @@ export function FormularWebinar({
   // preţ sau n-are, iar două surse de adevăr s-ar putea contrazice.
   const [cuPlata, setCuPlata] = useState(valori.price_bani != null)
   useSincronizat(valori.price_bani != null, setCuPlata)
+
+  // Moneda stă în stare, nu doar ca `defaultValue`: la trecerea pe „Gratuit"
+  // câmpurile dispar din pagină, iar la întoarcere s-ar fi remontat cu valoarea
+  // de la server şi ar fi înghiţit alegerea tocmai făcută.
+  const [moneda, setMoneda] = useState(monedaDin(valori.price_currency))
+  useSincronizat(monedaDin(valori.price_currency), setMoneda)
 
   const implicit = speakeri.find((s) => s.is_default)
   const [alesi, setAlesi] = useState<string[]>(
@@ -353,23 +360,38 @@ export function FormularWebinar({
           </div>
 
           {cuPlata && (
-            <div className="mt-1 max-w-52">
+            <div className="mt-1 max-w-72">
               <Camp
-                eticheta="Preț (lei)"
+                eticheta="Preț"
                 id={`${idFormular}-pret`}
                 hint="150 sau 149,50"
                 eroare={e.price_bani}
               >
-                <Input
-                  id={`${idFormular}-pret`}
-                  name="price_lei"
-                  inputMode="decimal"
-                  defaultValue={
-                    valori.price_bani != null
-                      ? pretInLei(valori.price_bani)
-                      : ''
-                  }
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id={`${idFormular}-pret`}
+                    name="price_lei"
+                    inputMode="decimal"
+                    className="flex-1"
+                    defaultValue={
+                      valori.price_bani != null
+                        ? sumaZecimala(valori.price_bani)
+                        : ''
+                    }
+                  />
+                  <select
+                    name="price_currency"
+                    aria-label="Moneda"
+                    value={moneda}
+                    onChange={(ev) =>
+                      setMoneda(ev.target.value === 'EUR' ? 'EUR' : 'RON')
+                    }
+                    className="border-input h-9 rounded-md border px-2 text-sm"
+                  >
+                    <option value="RON">{ETICHETA_MONEDA.RON}</option>
+                    <option value="EUR">{ETICHETA_MONEDA.EUR}</option>
+                  </select>
+                </div>
               </Camp>
             </div>
           )}

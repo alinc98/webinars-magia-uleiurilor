@@ -50,14 +50,42 @@ export function formateazaDurata(minute: number) {
   return `${minute}${cuDe ? ' de' : ''} minute`
 }
 
+export type Moneda = 'RON' | 'EUR'
+
 /**
- * „150 lei", dar „149,50 lei".
+ * Cum se scrie fiecare monedă, după sumă.
  *
- * Fără zecimale la sumele rotunde: „150,00 lei" pe o pagină de prezentare
- * arată a bon fiscal. Virgulă, nu punct — aşa se scriu banii în română.
+ * „150 lei" şi „150 €" — în română simbolul stă după număr, la amândouă. Nu
+ * folosim `Intl.NumberFormat` cu `style: 'currency'`: acela scrie mereu
+ * zecimalele, iar „150,00 lei" pe o pagină de prezentare arată a bon fiscal.
  */
-export function formateazaPret(bani: number) {
-  return `${pretInLei(bani)} lei`
+const SIMBOL: Record<Moneda, string> = {
+  RON: 'lei',
+  EUR: '€',
+}
+
+export const ETICHETA_MONEDA: Record<Moneda, string> = {
+  RON: 'lei',
+  EUR: 'euro',
+}
+
+export function esteMoneda(v: string | null | undefined): v is Moneda {
+  return v === 'RON' || v === 'EUR'
+}
+
+/** Moneda unui rând din bază, cu lei ca variantă sigură. */
+export function monedaDin(v: string | null | undefined): Moneda {
+  return esteMoneda(v) ? v : 'RON'
+}
+
+/**
+ * „150 lei", „149,50 lei", „150 €".
+ *
+ * Fără zecimale la sumele rotunde. Virgulă, nu punct — aşa se scriu banii în
+ * română, la orice monedă.
+ */
+export function formateazaPret(subunitate: number, moneda: Moneda = 'RON') {
+  return `${sumaZecimala(subunitate)} ${SIMBOL[moneda]}`
 }
 
 /**
@@ -65,10 +93,15 @@ export function formateazaPret(bani: number) {
  *
  * Aceeaşi regulă ca la afişare, ca precompletarea să arate „149,50", nu
  * „149,5" — altfel formularul pare că a pierdut o cifră.
+ *
+ * Împărţirea la o sută e aceeaşi la orice monedă din câte ne interesează, deci
+ * funcţia nu are nevoie să ştie care e.
  */
-export function pretInLei(bani: number) {
-  const lei = bani / 100
-  return bani % 100 === 0 ? String(lei) : lei.toFixed(2).replace('.', ',')
+export function sumaZecimala(subunitate: number) {
+  const intreg = subunitate / 100
+  return subunitate % 100 === 0
+    ? String(intreg)
+    : intreg.toFixed(2).replace('.', ',')
 }
 
 export const ETICHETA_FORMAT: Record<string, string> = {

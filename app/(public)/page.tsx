@@ -15,7 +15,7 @@ import { ButonLink } from '@/components/brand/buton'
 import { Ornament } from '@/components/brand/ornament'
 import { Poza } from '@/components/brand/poza'
 import { FormularListaAsteptare } from '@/components/public/formular-lista-asteptare'
-import { ETICHETA_FORMAT, formateazaPret } from '@/lib/format'
+import { ETICHETA_FORMAT, formateazaPret, monedaDin } from '@/lib/format'
 import { LINKURI } from '@/lib/linkuri'
 import {
   formateazaProgramScurt,
@@ -180,7 +180,12 @@ function Meta({ webinar }: { webinar: WebinarPublic }) {
       {/* Prețul stă în listă, nu doar pe pagina evenimentului: cine se uită
           peste toate merită să vadă din prima care costă. */}
       {webinar.price_bani != null && (
-        <Insigna ton="sage">{formateazaPret(webinar.price_bani)}</Insigna>
+        <Insigna ton="sage">
+          {formateazaPret(
+            webinar.price_bani,
+            monedaDin(webinar.price_currency),
+          )}
+        </Insigna>
       )}
       {webinar.seats_left !== null && (
         <Insigna ton={webinar.is_full ? 'neutru' : 'gold'}>

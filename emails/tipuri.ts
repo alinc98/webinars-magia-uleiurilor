@@ -1,3 +1,4 @@
+import type { Moneda } from '@/lib/format'
 import type { Sesiune } from '@/lib/program'
 
 export type DateWebinar = {
@@ -13,8 +14,9 @@ export type DateWebinar = {
   mapUrl?: string | null
   venueNotes?: string | null
   usefulInfo?: string | null
-  /** În bani. NULL înseamnă gratuit. */
+  /** În subunitatea monedei. NULL înseamnă gratuit. */
   priceBani?: number | null
+  priceCurrency?: Moneda
   recordingUrl?: string | null
   bonusTitle?: string | null
 }
