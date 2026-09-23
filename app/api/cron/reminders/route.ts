@@ -6,7 +6,9 @@ import { env } from '@/lib/env'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+// Pro permite 300s implicit (până la 800s). Cele optzeci şi ceva de
+// reamintiri de la un webinar plin intră acum într-o singură rulare.
+export const maxDuration = 300
 
 type Revendicare = {
   registration_id: string
@@ -16,15 +18,17 @@ type Revendicare = {
 
 type Sablon = 'reminder_24h' | 'reminder_scurt'
 
-const PLAFON_IMPLICIT = 60
+const PLAFON_IMPLICIT = 200
 
 /**
  * Cât timp ne lăsăm să trimitem, înainte să predăm restul rulării următoare.
  *
  * Sub `maxDuration`, cu o margine cât o trimitere lentă plus revendicarea
- * înapoi a ce n-am apucat. Vezi `trimiteLot`.
+ * înapoi a ce n-am apucat. Vezi `trimiteLot`. Rămâne şi acum, când avem timp
+ * berechet: e plasa care ţine rândurile nerevendicate în viaţă dacă vreodată
+ * lotul creşte peste ce încape.
  */
-const BUGET_MS = 45_000
+const BUGET_MS = 280_000
 
 /**
  * Câte reamintiri revendicăm într-o rulare.
@@ -69,7 +73,22 @@ function plafonLot(): { valoare: number; problema?: string } {
  * Rândurile se revendică atomic în bază — vezi migraţia 20260828000000 pentru
  * de ce marcarea se face înaintea trimiterii.
  */
+/**
+ * Vercel Cron cheamă ruta cu **GET** şi trimite singur
+ * `Authorization: Bearer <CRON_SECRET>` — exact antetul verificat mai jos, deci
+ * nu e nimic de configurat în plus.
+ *
+ * `POST` rămâne pentru declanşarea manuală din GitHub, maneta de urgenţă.
+ */
+export async function GET(request: Request) {
+  return ruleaza(request)
+}
+
 export async function POST(request: Request) {
+  return ruleaza(request)
+}
+
+async function ruleaza(request: Request) {
   const antet = request.headers.get('authorization')
   if (antet !== `Bearer ${env.cronSecret()}`) {
     return NextResponse.json({ ok: false }, { status: 401 })
@@ -120,6 +139,19 @@ export async function POST(request: Request) {
   if (plafon.problema) {
     console.error('Configurare greşită:', plafon.problema)
     erori.push(plafon.problema)
+  }
+
+  // Bătaia inimii: scrisă doar când chiar a mers totul. O rulare care a eşuat
+  // n-are voie să pară semn de viaţă — tocmai tăcerea care arată a succes ne-a
+  // costat trei săptămâni de reamintiri netrimise.
+  if (erori.length === 0) {
+    const { error } = await supabase
+      .from('settings')
+      .update({ cron_ultima_rulare: new Date().toISOString() })
+      .eq('id', true)
+
+    if (error)
+      console.error('Nu am putut scrie bătaia cron-ului:', error.message)
   }
 
   if (erori.length > 0) {

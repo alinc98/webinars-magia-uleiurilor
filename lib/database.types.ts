@@ -384,6 +384,7 @@ export type Database = {
       }
       settings: {
         Row: {
+          cron_ultima_rulare: string | null
           hub_empty_text: string
           hub_intro: string
           hub_title: string
@@ -392,6 +393,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cron_ultima_rulare?: string | null
           hub_empty_text?: string
           hub_intro?: string
           hub_title?: string
@@ -400,6 +402,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cron_ultima_rulare?: string | null
           hub_empty_text?: string
           hub_intro?: string
           hub_title?: string

@@ -5,8 +5,20 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
-/** Anonimizarea lunară a contactelor fără activitate (brief §10). */
+/**
+ * Anonimizarea lunară a contactelor fără activitate (brief §10).
+ *
+ * `GET` pentru Vercel Cron, care cheamă aşa; `POST` pentru declanşare manuală.
+ */
+export async function GET(request: Request) {
+  return ruleaza(request)
+}
+
 export async function POST(request: Request) {
+  return ruleaza(request)
+}
+
+async function ruleaza(request: Request) {
   if (request.headers.get('authorization') !== `Bearer ${env.cronSecret()}`) {
     return NextResponse.json({ ok: false }, { status: 401 })
   }
@@ -16,7 +28,10 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error('Anonimizarea a eșuat:', error.message)
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { ok: false, error: error.message },
+      { status: 500 },
+    )
   }
 
   return NextResponse.json({ ok: true, anonimizate: data ?? 0 })

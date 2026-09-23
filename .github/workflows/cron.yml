@@ -1,16 +1,17 @@
-# Remindere și follow-up-uri, din 15 în 15 minute.
+# Maneta de urgenţă pentru remindere. **Nu mai are program.**
 #
-# Nu Vercel Cron: planul Hobby permite o singură rulare pe zi, ceea ce face
-# reminderele de 24h și 1h imposibile (PLAN.md §2.1).
+# Programarea a trecut pe Vercel Cron, din 5 în 5 minute (vercel.json).
+# Motivul dinainte — planul Hobby permitea o singură rulare pe zi — a dispărut
+# odată cu trecerea pe Pro, care cheamă în minutul cerut.
 #
-# Cron-ul GitHub poate întârzia 5–20 de minute la ore de vârf. Nu contează:
-# endpoint-ul caută tot ce e scadent într-o fereastră, nu la un moment exact,
-# iar revendicarea din bază face rulările repetate inofensive.
-name: Remindere
+# `*/15` de aici era oricum o ficţiune: GitHub îl trata ca pe o sugestie şi
+# rula o dată la vreo patru ore. Pentru reamintirea de 24 de ore, cu fereastra
+# ei largă, mergea. Pentru cea de o oră, nu.
+#
+# Rămâne declanşabil de mână, pentru zilele în care trebuie forţat ceva acum.
+name: Remindere (manual)
 
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 concurrency:
