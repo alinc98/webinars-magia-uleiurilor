@@ -9,7 +9,7 @@ import {
 } from './componente'
 import type { ContextEmail } from './tipuri'
 import { formateazaOra } from '@/lib/format'
-import { primaSesiune, randuriProgram } from '@/lib/program'
+import { cuvantZi, primaSesiune, randuriProgram } from '@/lib/program'
 
 type Props = ContextEmail & { cand: '24h' | 'scurt' }
 
@@ -42,6 +42,11 @@ export function EmailReminder({
   // `webinars.starts_at`, care e chiar începutul ei. La un atelier pe mai
   // multe zile, „începe la ora" e ora din prima zi.
   const prima = primaSesiune(webinar.sesiuni)
+
+  // „azi" când e chiar azi. Fereastra reamintirii ăsteia ţine până cu o oră
+  // înainte de start, deci nu e mereu „mâine".
+  const ziua = prima ? cuvantZi(prima.starts_at) : 'mâine'
+  const ziuaCuMajuscula = ziua.charAt(0).toUpperCase() + ziua.slice(1)
 
   if (cand === 'scurt') {
     // Se citește pe telefon, adesea în picioare. Ora, calea de intrare, atât.
@@ -102,13 +107,13 @@ export function EmailReminder({
 
   return (
     <Sablon
-      preview={`Mâine: ${webinar.title}.`}
+      preview={`${ziuaCuMajuscula}: ${webinar.title}.`}
       unsubscribeUrl={unsubscribeUrl}
     >
       <Titlu>Bună, {name}! 🌿</Titlu>
 
       <Paragraf>
-        Îți scriu ca să-ți amintesc că mâine avem{' '}
+        Îți scriu ca să-ți amintesc că {ziua} avem{' '}
         <strong>{webinar.title}</strong>.
       </Paragraf>
 
@@ -118,7 +123,7 @@ export function EmailReminder({
         <>
           <Subtitlu>Linkul de intrare</Subtitlu>
           <Paragraf>
-            Îl folosești mâine, la ora de mai sus. Salvează-l sau lasă-ți
+            Îl folosești {ziua}, la ora de mai sus. Salvează-l sau lasă-ți
             mesajul ăsta la îndemână.
           </Paragraf>
           <Buton href={webinar.joinUrl}>Intră la eveniment</Buton>
@@ -142,7 +147,7 @@ export function EmailReminder({
       </Paragraf>
 
       <Paragraf>
-        Ne vedem mâine!
+        Ne vedem {ziua}!
         <br />
         <br />
         Cu drag,

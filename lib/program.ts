@@ -222,6 +222,26 @@ export function randuriProgram(sesiuni: Sesiune[]): [string, string][] {
   ]
 }
 
+/**
+ * „azi", „mâine", sau „pe 25 septembrie".
+ *
+ * Reamintirea de 24 de ore scria „mâine" din şablon. Dar fereastra ei e largă
+ * — între douăzeci şi patru de ore şi o oră înainte — iar cine se înscrie în
+ * dimineaţa evenimentului o primeşte tot pe ea. Atunci „mâine avem" e pur şi
+ * simplu fals, în emailul care duce linkul de intrare.
+ *
+ * Ziua se compară în ora României, nu în fusul serverului: altfel un eveniment
+ * de seară ar părea că e mâine, văzut de pe un proces care merge pe UTC.
+ */
+export function cuvantZi(iso: string, acum: Date = new Date()): string {
+  const zi = inOraRomaniei(new Date(iso))
+  const diferenta = zileIntre(inOraRomaniei(acum), zi)
+
+  if (diferenta === 0) return 'azi'
+  if (diferenta === 1) return 'mâine'
+  return `pe ${zi.zi} ${NUME_LUNI[zi.luna - 1]}`
+}
+
 /** Prima întâlnire — cea spre care pleacă reamintirile. */
 export function primaSesiune(sesiuni: Sesiune[]): Sesiune | undefined {
   return sesiuni[0]
