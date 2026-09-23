@@ -12,7 +12,7 @@ import { env } from '@/lib/env'
 import { construiesteIcs, linkGoogleCalendar } from '@/lib/ics'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { trimiteEmail, type Atasament } from '@/lib/email/transport'
-import { formateazaProgramScurt } from '@/lib/program'
+import { cuvantZi, formateazaProgramScurt, primaSesiune } from '@/lib/program'
 import type { Database } from '@/lib/database.types'
 
 type Sablon =
@@ -44,7 +44,15 @@ const ESTE_MARKETING: Record<Sablon, boolean> = {
 
 const SUBIECTE: Record<Sablon, (w: DateWebinar) => string> = {
   confirmare: (w) => `Te-ai înscris: ${w.title}`,
-  reminder_24h: (w) => `Mâine ne vedem: ${w.title}`,
+  // Subiectul urmează aceeaşi regulă ca textul dinăuntru. Prima dată a rămas
+  // „Mâine" fix aici, în timp ce corpul spunea corect „azi": şablonul şi
+  // subiectul stau în fişiere diferite, iar o căutare doar prin `emails/` nu
+  // trece pe lângă asta.
+  reminder_24h: (w) => {
+    const prima = primaSesiune(w.sesiuni)
+    const ziua = prima ? cuvantZi(prima.starts_at) : 'mâine'
+    return `${ziua.charAt(0).toUpperCase()}${ziua.slice(1)} ne vedem: ${w.title}`
+  },
   reminder_scurt: (w) => `Începem în curând: ${w.title}`,
   followup_prezent: (w) => `Mulțumesc că ai fost acolo — ${w.title}`,
   followup_absent: (w) => `Ce ai ratat la ${w.title}`,
